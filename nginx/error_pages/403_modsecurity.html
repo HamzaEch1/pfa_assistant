@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Alert - Access Denied</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .icon {
+            font-size: 80px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+        .info {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⚠️</div>
+        <h1>Security Alert - Access Denied</h1>
+        <p>
+            Our security system has detected potentially malicious activity in your request.
+            The request has been blocked to protect our systems and users.
+        </p>
+        <p>
+            If you believe this is a mistake, please contact the system administrator
+            and provide the incident ID: <strong id="incident-id"></strong>
+        </p>
+        <a href="/" class="back-button">Return to Homepage</a>
+        <div class="info">
+            This request has been logged for security analysis.
+        </div>
+    </div>
+    <script>
+        // Generate a random incident ID for reference
+        document.getElementById('incident-id').textContent = 
+            'MOD-' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+    </script>
+</body>
+</html> 

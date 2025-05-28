@@ -1,0 +1,155 @@
+# docker-compose.dev.yml
+# Development version of docker-compose.yml
+
+services:
+
+  # Nginx Service (Development)
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server_dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - rag_network
+
+  # Frontend Service (Development)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: react_frontend_dev
+    ports:
+      - "5173:5173"  # Development port for Vite
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app  # Mount source for hot reloading
+      - /app/node_modules  # Prevent node_modules override
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - rag_network
+
+  # FastAPI Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fastapi_api
+    ports:
+      - "8000:8000"
+    environment:
+      PG_HOST: db
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-user}
+      PG_PASSWORD: ${PG_PASSWORD:-password}
+      PG_DB: ${PG_DB:-mydb}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_GRPC_URL: qdrant:6334
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-banque_ma_data_catalog}
+      OLLAMA_HOST: http://host.docker.internal:11434 # Use host.docker.internal for Windows
+      OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-llama3:8b}
+      OLLAMA_CLIENT_TIMEOUT: "12000"
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-paraphrase-multilingual-MiniLM-L12-v2}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY?err}
+      NUM_RESULTS_TO_RETRIEVE: ${NUM_RESULTS_TO_RETRIEVE:-28}
+      USER_FILES_DIR: /app/user_files
+      QDRANT_CLIENT_TIMEOUT: "120"
+    volumes:
+      - ./api:/app/api
+      - type: bind
+        source: ${HOME}/.cache/huggingface/hub
+        target: /root/.cache/huggingface/hub
+        read_only: false
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - rag_network
+
+  # Qdrant Service
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant_db
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__ENABLE_TELEMETRY: "true"
+      QDRANT__SERVICE__ENABLE_DISTRIBUTED: "false"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - rag_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # PostgreSQL Service
+  db:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${PG_USER:-user}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-password}
+      POSTGRES_DB: ${PG_DB:-mydb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-user} -d ${PG_DB:-mydb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - rag_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  qdrant_data:
+  postgres_data:
+
+networks:
+  rag_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16 

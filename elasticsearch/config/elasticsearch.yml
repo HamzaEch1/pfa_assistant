@@ -1,0 +1,15 @@
+cluster.name: 'docker-cluster'
+network.host: 0.0.0.0
+bootstrap.memory_lock: true
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs
+action.destructive_requires_name: true
+indices.query.bool.max_clause_count: 8192
+discovery.type: single-node
+cluster.routing.allocation.disk.threshold_enabled: true
+cluster.routing.allocation.disk.watermark.low: 85%
+cluster.routing.allocation.disk.watermark.high: 90%
+cluster.routing.allocation.disk.watermark.flood_stage: 95%
+xpack.security.enabled: false
+path.repo: ['/usr/share/elasticsearch/snapshots']
+logger.level: INFO

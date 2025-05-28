@@ -1,0 +1,36 @@
+# requirements.txt
+
+# --- FastAPI Core ---
+fastapi
+uvicorn[standard] # ASGI server with performance extras
+pydantic          # Data validation and settings management
+pydantic-settings # For loading config from env/files
+email-validator
+
+# --- Authentication & Security ---
+python-multipart  # Required for OAuth2 password flow (form data)
+PyJWT             # For JWT handling
+passlib[bcrypt]   # Recommended for password hashing
+python-jose[cryptography] # Often used with JWT for robustness
+pyotp             # For TOTP (Time-based One-Time Password) generation
+qrcode[pil]       # For QR code generation
+hvac              # HashiCorp Vault client
+
+# Point pip to the PyTorch CPU-only repository first
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# List PyTorch components (pip will find the CPU versions via the extra index)
+torch
+torchvision
+torchaudio
+
+# Other dependencies
+streamlit
+psycopg2-binary
+qdrant-client>=1.7.0,<2.0.0
+sentence-transformers # This will now use the already installed CPU torch
+pandas
+openpyxl
+ollama
+cryptography
+

@@ -1,0 +1,889 @@
+% Classe principale du document
+\documentclass[a4paper,12pt]{report}
+
+% Package de base
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+
+% Configuration de la page
+\usepackage{geometry}
+\geometry{a4paper, left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+% Packages pour les tableaux et les figures
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{caption}
+\usepackage{adjustbox}
+
+% Packages pour les couleurs
+\usepackage{xcolor}
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+
+% Packages pour les mathématiques
+\usepackage{amsmath}
+
+% Packages pour les listes
+\usepackage{enumitem}
+
+% Packages pour les liens et la navigation
+\usepackage[hidelinks]{hyperref}
+\usepackage{tocloft}
+
+% Configuration des liens
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    pdfborder={0 0 0}
+}
+
+% Le reste du document commence ici
+\begin{document}
+
+% Logo (vous devrez remplacer le chemin par le bon emplacement de votre logo)
+\begin{center}
+    \includegraphics[width=0.2\textwidth]{image/ENSA Oujda.png}
+    \hfill
+    \includegraphics[width=0.2\textwidth]{image/ENSA Oujda.png}
+\end{center}
+
+\vspace{-2cm}
+
+\begin{center}
+    \textbf{Université Mohammed Premier}\\
+    \text{École Nationale des Sciences Appliquées}\\
+    Oujda
+
+    \vspace{4cm}
+
+\vspace{-1cm}
+    
+    {\Large \textbf{Mémoire de Fin d'Études}} \\
+    
+    \vspace{3cm}
+    
+    {\large \text{Filière : Ingénierie du Data Science et Cloud Computing}} \\
+    \vspace{1cm}
+
+    \Large \textbf{INGÉNIEUR D'ÉTAT}\\
+   \large \text{Filière : Data Science \& Cloud Computing}
+
+    \vspace{0.1cm}
+
+ \rule{15cm}{0.5mm} \\
+    \vspace{0.1cm}
+    {\LARGE \textbf{Gouvernance de données : \\ Assistant de catalogue de données}} \\
+    \vspace{0.5cm}
+    \rule{15cm}{0.5mm} \\
+    \vspace{0.5cm}
+
+    \begin{minipage}[t]{0.45\textwidth}
+        \textbf{Réalisé par :}\\
+               MAATI Khadija
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \textbf{Sous la direction de :}\\
+        Pr. Mohcine BOUKSIM \\
+        
+    \end{minipage}
+
+    \vspace{2cm}
+
+    \textbf{Soutenu le   date  2025, Devant le jury :}\\
+    Pr. \\
+    Pr. \\
+    Pr. 
+
+    \vspace{4cm}
+
+    \text{Année universitaire 2023/2024}
+\end{center}
+
+% Pages préliminaires
+\newpage
+Dédicace
+\newpage
+Remerciements
+\newpage
+Abstract
+
+\newpage
+
+% Table des matières, figures et tableaux
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+Liste des acronymes
+\newpage
+
+% Introduction
+Introduction générale
+\newpage
+
+% Chapitre 1
+\chapter{Contexte général du projet}
+Ce premier chapitre est consacré à la présentation de l'organisme d'accueil de notre projet
+de fin d'études la BCP tout en précisant ses activités et son organigramme ainsi
+que la problématique et le contexte du projet.
+\section{Présentation de l'organisme d'accueil}
+
+Le Groupe banque populaire (GBP), acteur majeur du secteur bancaire et financier, s'est établi au Maroc dès 1926. Il englobe le Crédit populaire du maroc (CPM) et ses filiales
+spécialisées. L'objectif du GBP est d'accompagner les entreprises de toutes tailles en leur offrant des solutions de crédit à court, moyen et long terme, ainsi qu'une gamme complète de services financiers. Il se compose de 8 banques populaires régionales, dispose de plus
+de 1500 agences et compte plus de 1818 distributeurs automatiques de billets. Avec une
+clientèle de 6,1 millions de personnes, le GBP étend son influence à 30 pays étrangers.
+\subsection{Fiche signalétique}
+La fiche signalétique du Groupe Banque Populaire est un document indispensable qui rassemble les informations essentielles sur l'entreprise. Elle offre un aperçu concis comprenant la raison sociale, l'adresse, les coordonnées, ainsi que des données financières clés. Vous trouverez ci-dessous la fiche signalétique du groupe :
+\begin{figure}[ht]
+    \hspace{-3.3cm} % Ajuste cette valeur pour plus ou moins de déplacement vers la gauche
+    \centering
+    \includegraphics[width=1\textwidth]{image/Diagramme sans nom.drawio.png }
+    \caption{Fiche signalétique de la BCP }
+    \label{fig:fiche_signaletique_bcp}
+\end{figure}
+\subsection{Organigramme de l'entreprise}
+
+Le GBP est structuré en quatre niveaux, comprenant les entités suivantes :
+\\
+
+
+\setlist[itemize,1]{label=\textbullet}
+\begin{itemize}
+    \item \textbf{ Comité Directeur :} \\ 
+    Le Comité Directeur du GBP supervise les différentes composantes du GBP. Il est composé de cinq présidents des Conseils de Surveillance des Banques Populaires Régionales, de cinq représentants du Conseil d'Administration de la BCP, et d'un président élu parmi les membres du Comité avec ratification ministérielle.
+    \\
+    \item \textbf{ BCP :} \\
+    La BCP assume le rôle d'établissement central de crédit, coordonnant la politique financière du groupe. Elle s'occupe du refinancement des Banques Populaires Régionales (BPR) et de la gestion de leurs excédents de trésorerie. De plus, la BCP assure des services d'intérêt commun pour l'ensemble de ses organismes.
+    \\
+    \item  \textbf{ Banques Populaires Régionales :}\\
+    Les Banques Populaires Régionales (BPRs) sont des institutions bancaires de proximité jouant un rôle crucial au sein du GBP. Leur mission principale est de favoriser
+le développement régional en proposant une gamme diversifiée de produits, en finançant des projets d'investissement, et en encourageant la bancarisation de l'économie.
+Elles jouent également un rôle clé dans la collecte, la mobilisation, et l'utilisation
+de l'épargne au niveau régional.
+\\
+\item  \textbf{ Plateformes technologiques, Innovation et Opérations Groupe :}\\
+La GBP abrite un pôle dédié aux « Plateformes technologiques, Innovation et Opérations Groupe ». À l'intérieur de ce pôle, la Direction des systèmes d'informations
+(DSI) collabore étroitement avec la direction de l'assistance et de la maîtrise d'ouvrage pour concevoir et intégrer des solutions informatiques répondant aux besoins
+des utilisateurs. La DSI garantit la conformité aux normes de qualité, de coûts et de
+délais, assure la structure logique des données, et effectue les modifications nécessaires aux applications existantes pour se conformer aux règlementations, améliorer
+les performances, garantir la sécurité et faciliter leur utilisation.
+\end{itemize}
+L'organigramme BCP est présenté dans la figure ci dessous .
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{image/organigramme 2.png}
+    \caption{Organigramme de la BC\newline }
+    \label{fig:Organigramme_PTIOG }
+\end{figure}
+
+La figure \ref{fig:Organigramme_PTIOG} ci-dessous illustre l'organigramme de la filiale \textbf{" Plateformes Technologiques, Innovation et Opérations Groupe " }.  
+Nous avons effectué notre stage au sein de Data Custodian, une nouvelle entité rattachée à ce pôle.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{image/organigramme1.png}
+    \caption{Organigramme du pôle PTIOG}
+    \label{fig:Organigramme_PTIOG}
+\end{figure}
+
+
+Data Custodian est responsable de l'ensemble des sujets liés à la gestion des données au niveau du groupe et regroupe trois sous-entités, comme illustré dans la figure ci-dessous. Mon stage de fin d'études (PFE) s'est déroulé au sein de l'entité "Group Data Governance Norm \& Quality".
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{image/image_data.png}
+    \caption{Organigramme du Data Custodian }
+    \label{fig:Organigramme_PTIOG }
+\end{figure}
+
+% Table des matières
+\newpage
+
+% Chapitre 1: Phase de Cadrage
+\chapter{Phase de Cadrage}
+Ce chapitre est consacré à la phase de cadrage, une étape clé qui permet de structurer et clarifier le projet avant sa mise en œuvre. Il vise à définir les objectifs, les enjeux et les contraintes, garantissant ainsi une vision alignée et une meilleure gestion des risques. Cette phase est essentielle pour assurer une exécution fluide et efficace du projet.
+\section{Contexte du Projet}
+Avec l'évolution rapide du numérique et de l'intelligence artificielle, la gestion des données est devenue un enjeu clé pour les entreprises. Au sein du groupe BCP, les données sont un actif stratégique majeur, mais leur dispersion dans différents systèmes complique leur exploitation. La gouvernance des données devient ainsi essentielle pour garantir leur qualité, sécurité, conformité et accessibilité.
+
+L'entreprise dispose d'un large catalogue de données centralisées, utilisé par diverses équipes (analystes, managers, équipes métiers). Ce patrimoine inclut des données structurées et non structurées, enrichies de métadonnées et de documentation technique, le tout géré selon les normes RGPD et les politiques internes de confidentialité.
+
+Dans cette dynamique de valorisation et de transformation digitale, le projet d'Assistant Catalogue de Données (RAG) vise à exploiter l'intelligence artificielle pour moderniser l'accès aux données internes et faciliter leur exploitation via un chatbot intelligent intégré à une interface web intuitive.
+
+\section{Problématiques du Projet}
+Malgré la richesse et l'accessibilité de notre patrimoine de données, plusieurs problématiques majeures persistent actuellement :
+
+\begin{itemize}
+    \item \textbf{Fragmentation des informations :} Les données sont réparties entre plusieurs systèmes et formats, rendant leur accès et leur utilisation difficiles.
+    \item \textbf{Perte de temps significative :} La recherche manuelle d'informations dans le catalogue est chronophage et peu productive.
+    \item \textbf{Accessibilité restreinte :} L'accès au catalogue de données nécessite une expertise technique, ce qui exclut les utilisateurs non techniques.
+    \item \textbf{Risque d'erreurs :} L'absence de centralisation et de structuration claire des données augmente les risques d'interprétation incorrecte ou d'erreurs dans leur utilisation.
+\end{itemize}
+
+\section{Objectifs du Projet}
+Le projet "Assistant Catalogue de Données (RAG)" vise à résoudre ces problématiques et à atteindre les objectifs suivants :
+
+\begin{itemize}
+    \item \textbf{Gain de temps et de productivité :} Réduire significativement le temps consacré à la recherche des données, permettant aux équipes de se concentrer sur des tâches à plus forte valeur ajoutée.
+    \item \textbf{Amélioration de la prise de décision :} Offrir un accès rapide à des données fiables et pertinentes pour améliorer les décisions stratégiques et opérationnelles.
+    \item \textbf{Valorisation optimale des données existantes :} Maximiser l'utilisation des données disponibles, évitant ainsi les efforts redondants et facilitant leur réutilisation.
+    \item \textbf{Renforcement de la confiance dans les données :} Garantir la qualité, la provenance et la fiabilité des données utilisées, ce qui renforcera la confiance des utilisateurs et améliorera la pertinence des analyses.
+    \item \textbf{Simplification de la collaboration interne :} Créer un langage commun qui facilitera la communication et la coopération entre les différentes équipes.
+    \item \textbf{Réduction des risques liés à la sécurité des données :} Assurer une gestion rigoureuse et sécurisée des accès aux informations sensibles pour prévenir les incidents et garantir la conformité réglementaire.
+    \item \textbf{Culture data-driven durable :} Promouvoir l'utilisation proactive des données au sein de l'organisation pour améliorer les performances à long terme.
+\end{itemize}
+
+\section{Contraintes et Risques du Projet}
+\subsection{Contraintes Identifiées}
+Le projet fait face à plusieurs contraintes majeures qui devront être gérées efficacement :
+
+\begin{itemize}
+    \item \textbf{Qualité des données :} Le projet dépend de la qualité des données dans le catalogue, qui doivent être complètes, précises et bien structurées pour permettre des réponses efficaces du chatbot.
+    \item \textbf{Latence et performance :} Le chatbot doit offrir des performances optimales, avec des délais de réponse minimaux.
+    \item \textbf{Scalabilité :} L'architecture du système doit être capable de s'adapter à un volume croissant de données et d'utilisateurs sans affecter les performances.
+    \item \textbf{Sécurité des données :} Le système doit garantir la confidentialité et la sécurité des données, notamment pour les informations sensibles ou privées.
+    De plus une protection des données contre les accées non autorisés.
+    \item \textbf{Technologies spécifiques :} Les technologies choisies pour le chatbot et l'interface web doivent être compatibles avec les exigences du projet.
+\end{itemize}
+
+\subsection{Risques Liés au Projet}
+Les risques liés au projet sont répartis en plusieurs catégories :
+
+1. \textbf{Risque lié à la qualité des données et de la réponse} :
+   \begin{itemize}
+        \item[$ $] \textbf{Biais dans les réponses :} Risque de réponses incorrectes ou biaisées fournies par l'assistant IA, influencées par des données biaisées.
+        \item[$ $] \textbf{Requêtes ambiguës :} Difficulté à gérer des questions mal formulées, entraînant des réponses imprécises ou inutiles.
+      \item[$ $] \textbf{Surcharge d'informations :} Trop d'informations générées par l'IA, ce qui peut entraîner la confusion des utilisateurs.
+       \item[$ $] \textbf{Manque d'actualisation des données :} Risque d'informations obsolètes si le catalogue n'est pas mis à jour régulièrement.
+   \end{itemize}
+
+2. \textbf{Risque lié à l'adoption et à l'intégration} :
+   \begin{itemize}
+       \item[$ $] \textbf{Manque d'adoption par les utilisateurs :} Résistance au changement technologique de la part des utilisateurs.
+       \item[$ $] \textbf{Dépendance à l'IA :} L'IA pourrait ne pas répondre parfaitement aux attentes des utilisateurs dans des situations complexes.
+       \item[$ $] \textbf{Risque lié au choix ou à l'intégration des outils :} Problèmes d'intégration entre les technologies utilisées pour le chatbot.
+   \end{itemize}
+
+3. \textbf{Risque technique et de performance} :
+   \begin{itemize}
+       \item[$ $] \textbf{Défaillance ou instabilité du système :} Risque d'erreurs techniques ou de plantages si la mise en production n'est pas suffisamment testée.
+      \item[$ $] \textbf{Absence de ressources Open Source :} Limitations dans les outils et ressources disponibles pour le développement continu.
+   \end{itemize}
+
+\subsection{ Mesures d'atténuation des risques}
+Pour atténuer les risques identifiés ci-dessus, plusieurs mesures seront mises en place :
+
+\begin{itemize}
+    \item \textbf{Amélioration continue de la qualité des données :} Mise en place de processus d'audit et de nettoyage des données pour garantir leur qualité et leur pertinence.
+    \item \textbf{Tests de performance réguliers :} Des tests rigoureux seront effectués pour assurer que le chatbot fonctionne dans des conditions optimales, avec des délais de réponse minimaux.
+    \item \textbf{Formation des utilisateurs :} Un programme de formation sera lancé pour aider les utilisateurs à s'adapter à la nouvelle technologie et à maximiser l'efficacité du système.
+    \item \textbf{Sécurisation renforcée :} Des mesures de sécurité strictes seront mises en place pour garantir la protection des données sensibles et assurer la conformité aux régulations.
+\end{itemize}
+
+\section{Méthodologie }
+Pour mener à bien le projet "Assistant Catalogue de Données (RAG)", l'équipe a décidé d'adopter la méthodologie agile Scrum. Cette approche a été choisie en raison de ses nombreux avantages pour les projets innovants et complexes.
+
+\subsection{Adoption de Scrum par l'Équipe}
+L'équipe projet, composée de développeurs, de data engineers et de chefs de projet, a choisi la méthodologie agile Scrum pour plusieurs raisons liées à ses caractéristiques et à ses avantages. :
+
+\begin{itemize}
+    \item[$ $] \textbf{Flexibilité et Adaptabilité :} Scrum permet d'intégrer facilement des changements dans les exigences du projet, ce qui est essentiel dans un contexte technologique en constante évolution.
+    \item[$ $] \textbf{Approche itérative :} Le développement est organisé en sprints, des cycles courts et itératifs qui permettent de livrer des fonctionnalités exploitables à chaque étape.
+    \item[$ $] \textbf{Amélioration continue :} Chaque sprint est suivi d'une rétrospective, permettant à l'équipe d'analyser ses performances et d'améliorer les processus pour les cycles suivants.
+    \item[$ $] \textbf{Collaboration renforcée :} Scrum favorise une communication efficace au sein de l'équipe grâce à des réunions régulières, telles que les daily stand-ups.
+    \item[$ $] \textbf{Livraison rapide de valeur :} Les livraisons incrémentales permettent de fournir rapidement des résultats tangibles aux parties prenantes.
+    \item[$ $] \textbf{Transparence :} La méthodologie offre une visibilité accrue sur l'avancement du projet grâce aux outils comme le tableau Scrum et les burn-down charts.
+    \item[$ $] \textbf{Encourager l'autonomie et la responsabilité :} Scrum responsabilise chaque membre de l'équipe en leur attribuant des tâches claires à réaliser dans un délai précis.
+    \item[$ $] \textbf{Réduire les risques :} Les sprints permettent d'identifier et de résoudre rapidement les problèmes avant qu'ils ne s'accumulent.
+    \item[$ $] \textbf{Favoriser la communication entre les parties prenantes :} Scrum implique activement les parties prenantes à travers les réunions de revue de sprint, garantissant que le projet répond aux attentes des utilisateurs finaux.
+\end{itemize}
+\subsection{Cycle de Scrum}
+La méthodologie Scrum a été adoptée pour sa flexibilité et son approche collaborative, permettant une adaptation rapide aux changements.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/cycle_scrum.png}
+    \caption{Cycle de développement selon la méthodologie Scrum}
+    \label{fig:diagramme_gantt}
+\end{figure}
+
+Le cycle Scrum est un processus itératif et collaboratif qui repose sur une communication étroite entre les différents acteurs pour garantir une livraison rapide et efficace des résultats. Les étapes principales du cycle sont décrites comme suit :
+\begin{itemize}
+    \item \textbf{Product Owner :} Représente les parties prenantes et définit les besoins métier en créant et en priorisant le backlog produit.
+    \item \textbf{Backlog produit :} Une liste de tâches ou fonctionnalités à développer, priorisée en fonction des objectifs du projet.
+    \item \textbf{Planification du sprint :} Une réunion pour définir les objectifs du sprint et identifier les tâches à réaliser dans le backlog du sprint.
+    \item \textbf{Backlog du sprint :} Une sélection des tâches spécifiques à accomplir pendant le sprint, issue du backlog produit.
+    \item \textbf{Scrum quotidien :} Une réunion rapide entre l'équipe de développement et le Scrum Master pour suivre l'avancement, résoudre les blocages et adapter les priorités si nécessaire.
+    \item \textbf{Sprint :} Une période de travail itérative (généralement de 2 à 4 semaines) où l'équipe se concentre sur la réalisation des tâches définies.
+    \item \textbf{Revue de sprint :} Une réunion en fin de sprint pour présenter le travail terminé aux parties prenantes, recueillir des retours et valider les livrables.
+    \item \textbf{Rétrospective de sprint :} Une analyse post-sprint pour identifier les forces, les faiblesses et les axes d'amélioration pour les prochains cycles.
+\end{itemize}
+
+Ce cycle est supervisé par le \textbf{Scrum Master}, qui veille à la bonne application de la méthodologie et facilite la collaboration entre l'équipe de développement et le Product Owner. À la fin de chaque sprint, les résultats sont partagés avec le client pour garantir une satisfaction continue.
+
+
+\subsection{Personnalisation de la méthodologie Scrum}
+
+La méthodologie Scrum a été adaptée pour notre projet en suivant les principes fondamentaux tout en utilisant les outils et les structures spécifiques de l'organisation.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/perso_scrum.png}
+    \caption{ Personnalisation de la méthodologie Scrum au projet}
+    \label{fig:diagramme_gantt}
+\end{figure}
+\begin{itemize}
+    \item \textbf{Product Owner} : Représenté par le groupe BCP, il définit les besoins et les attentes du projet pour garantir l'alignement stratégique.
+    \item \textbf{Backlog Produit} : Correspond à la fiche de projet, regroupant les objectifs, les livrables et les phases clés.
+    \item \textbf{Planification du Sprint} : Organisée à l'aide d'un diagramme de Gantt pour structurer le travail sur des périodes définies.
+    \item \textbf{Backlog du Sprint} : Détaille les tâches spécifiques à réaliser, gérées efficacement avec l'outil Trello.
+    \item \textbf{Scrum quotidien et Sprint} : Réunions journalières pour synchroniser les efforts, identifier les obstacles et ajuster les priorités.
+    \item \textbf{Collaboration avec le client} : Réunions hebdomadaires pour valider les livrables, ajuster les priorités et intégrer les retours.
+\end{itemize}
+
+Cette adaptation garantit une meilleure organisation des tâches, une communication efficace et une livraison progressive alignée avec les attenteset les objectifs.
+
+\subsubsection{Fiche de Projet}
+
+La fiche de projet est un document clé qui regroupe les informations essentielles sur les objectifs, les livrables, les phases du projet, et les parties prenantes. Son rôle principal est de définir les contours du projet et d'assurer que toutes les parties prenantes ont une vision commune des attentes.
+
+Dans notre projet, la fiche de projet sert de \textit{Backlog Produit} en Scrum. Elle décrit les besoins du client, les objectifs stratégiques et les étapes à suivre pour atteindre les résultats escomptés.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/PFE_Fiche_Projet_page-0001.jpg}
+    \caption{Fiche de projet utilisée}
+    \label{fig:fiche_projet}
+\end{figure}
+
+\FloatBarrier  % Empêche que l'image dépasse cette section
+
+\subsubsection{Diagramme de Gantt}
+
+Le diagramme de Gantt est un outil de planification visuelle qui permet de représenter les différentes tâches et leur progression dans le temps. Il facilite la coordination des équipes et garantit une gestion optimale des ressources.
+
+Dans le cadre de notre projet, le diagramme de Gantt joue le rôle de planification du \textit{Sprint} en Scrum. Il nous permet de structurer les périodes de travail, de définir les priorités, et de garantir que les délais sont respectés.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/diagramme_Gant.png}
+    \caption{Diagramme de Gantt utilisé pour la planification des Sprints}
+    \label{fig:diagramme_gantt}
+\end{figure}
+
+\FloatBarrier  % Empêche que l'image dépasse cette section
+
+\subsubsection{Outil Trello}
+
+Trello est un outil de gestion de tâches en ligne basé sur un système de tableaux et de cartes. Il offre une flexibilité dans l'organisation des tâches, facilite le suivi des progrès, et améliore la collaboration au sein de l'équipe.
+
+Dans notre projet, Trello est utilisé comme \textit{Backlog du Sprint}. Il regroupe les tâches détaillées pour chaque sprint, permet de suivre leur progression et assure une meilleure coordination des efforts entre les membres de l'équipe.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/trello.png}
+    \caption{Exemple de tableau Trello utilisé dans le projet}
+    \label{fig:trello}
+\end{figure}
+
+\FloatBarrier  % Empêche que l'image dépasse cette section
+\section*{Synthèse}
+
+La phase de cadrage a permis de bien comprendre les besoins du projet, de définir son périmètre et d'identifier les objectifs clés. Elle constitue une étape essentielle pour aligner les attentes des parties prenantes et garantir une approche structurée, adaptée aux enjeux identifiés.
+\chapter{Phase d'analyse}
+
+La phase d'analyse représente un moment clé du projet, permettant de réaliser un diagnostic précis de l'existant, de définir les besoins spécifiques et de sélectionner les solutions technologiques les plus adaptées. Cette étape est essentielle pour garantir que la solution finale répondra pleinement aux attentes des utilisateurs tout en s'intégrant efficacement dans l'environnement du groupe BCP. L'objectif est d'étudier la structure des données, les systèmes actuels, et les exigences fonctionnelles et non fonctionnelles, afin de concevoir une solution optimale et bien adaptée.
+\section{La gouvernance de données}
+
+\subsection{Définition}
+La gouvernance des données favorise la disponibilité, la qualité et la sécurité des données d'une organisation grâce à différentes politiques et normes. Ces processus déterminent les propriétaires des données, les mesures de sécurité des données et les utilisations prévues pour les données. Globalement, l'objectif de la gouvernance des données est de gérer des données de haute qualité, qui soient à la fois sécurisées et facilement accessibles pour permettre d'en extraire des informations métier approfondies. 
+
+\subsection{L'importance de la gouvernance des données}
+Parmi les idées importantes discutées dans l'article \textbf{Building Better Global Data Governance },les auteurs mentionnent que l'importance de la gouvernance des données repose sur plusieurs aspects cruciaux, parmi eux :
+\begin{itemize}
+    \item \textbf{Absence de cadre global de protection des données} : Les auteurs soulignent l'absence d'un cadre global de protection des données des consommateurs tout au long de leur cycle de vie.
+    \item \textbf{Défis liés aux nouvelles méthodes de collecte et d'utilisation des données} : Les défis liés aux nouvelles méthodes de collecte et d'utilisation des données, mentionnés par les auteurs, se réfèrent aux difficultés supplémentaires que l'intelligence artificielle (IA) et l'Internet des objets (IoT) apportent à la gouvernance des données.
+    \item \textbf{La taille croissante des données} : La gouvernance des données devient cruciale car elle permet de gérer efficacement l'explosion de données. Elle garantit que les données sont organisées, stockées et accessibles de manière cohérente, facilitant ainsi l'analyse et l'extraction de valeur.
+\end{itemize}
+    \vspace{0.1cm}
+
+En plus des points mentionnés précédemment, on peut également ajouter :
+    \vspace{0.1cm}
+
+\begin{itemize}
+    \item \textbf{L'augmentation exponentielle des acteurs travaillant sur les données} : IDC (\textit{International Data Corporation}) prévoit que le nombre de personnes qui interagissent avec les données va augmenter à 75\% de la population en 2025. La gouvernance des données offre un cadre structuré pour régir l'accès aux données, définir les responsabilités et les autorisations, et assurer une utilisation appropriée des informations.
+    \item \textbf{Les nouvelles réglementations et lois sur le traitement des données} : L'évolution rapide des réglementations et lois liées à la confidentialité des données souligne l'importance de la gouvernance des données. Les organisations sont tenues de respecter des normes strictes en matière de protection des données personnelles, de transparence et de consentement.
+\end{itemize}
+
+\subsection{Les enjeux d'une bonne gouvernance de données}
+\begin{enumerate}
+    \item \textbf{Promouvoir une culture d'entreprise axée sur les données} : L'enjeu primordial est de sensibiliser les utilisateurs à l'importance des données, aux bénéfices qu'elles apportent et à leur rôle essentiel. .
+    \item \textbf{Établir un langage commun} : La gouvernance des données permet de définir des conventions internes, des indicateurs clés de performance (KPIs), ainsi que des règles et procédures à l'échelle de l'entreprise, facilitant ainsi une communication uniforme.
+    \item \textbf{Mieux exploiter les données} : Optimiser la qualité et la disponibilité des données pour renforcer leur accessibilité, permettant ainsi aux collaborateurs d'accéder à plus d'informations et à des informations plus fiables.
+    \item \textbf{Maîtriser les coûts} : Une gouvernance efficace des données vise également à organiser et unifier les données pour en faciliter l'utilisation. Cela permet de supprimer les doublons et de réduire les coûts de stockage et de maintenance.
+    \item \textbf{Assurer la conformité avec les réglementations} : De nombreuses entreprises lancent des projets de gouvernance des données principalement pour se conformer au RGPD (Règlement général sur la protection des données) et à d'autres réglementations similaires.
+\end{enumerate}
+
+\subsection{Le cadre de gouvernance de données}
+Un cadre de gouvernance de données désigne le modèle qui pose les bases de la stratégie et de la conformité des données, essentiel pour assurer que l'organisation des données soit à la fois efficace et conforme aux normes et réglementations. Il combine les règles, les activités, les responsabilités, les procédures et les processus qui déterminent la gestion et le contrôle de ces flux de données.
+
+Dans ce sens, mon PFE \textbf{Assistant de catalogue de données} vise à établir des processus et des directives de gouvernance des données à plusieurs niveaux de l'organisation. Il se focalise sur l'automatisation de quelques processus des piliers colorés (en orange) tel qu'illustré à la figure~\ref{fig:pilars}. Les piliers en gris ne font pas partie de la portée de ce projet mais nécessitent une coordination avec les autres équipes en charge.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{image/architecture RAG.png}
+    \caption{Les piliers de la gouvernance des données}
+    \label{fig:pilars}
+\end{figure}
+\begin{itemize}
+    \renewcommand\labelitemi{\textbullet}
+
+    \item \textbf{Data catalog:} Implanter un catalogue de données pour centraliser les métadonnées et fournir une vue d'ensemble des actifs de données disponibles. Cela facilite la découverte de données, la gestion des accès, et assure la transparence dans l'utilisation des données.
+        \vspace{0.2cm}
+
+    \item \textbf{Data culture:} Encourager une culture organisationnelle qui considère les données comme un atout stratégique. Cela inclut la formation et le développement des compétences en matière de données pour tous les collaborateurs, l'approche data-driven dans la prise de décision, et la sensibilisation aux responsabilités liées à la gestion des données.
+        \vspace{0.2cm}
+
+    \item \textbf{Data quality:} La qualité des données renvoie à la fois aux caractéristiques associées à des données de haute qualité et aux processus utilisés pour mesurer ou améliorer la qualité des données. Mettre en place des mécanismes systématiques pour mesurer et améliorer la qualité des données à travers des processus de validation, de nettoyage, et de réconciliation. Cela peut inclure l'automatisation de la détection des anomalies, la définition de métriques de qualité, et la mise en œuvre des tableaux de bord pour le suivi en continu.
+        \vspace{0.1cm}
+
+    \item \textbf{Data security:} La sécurité des données renvoie à la pratique consistante à protéger les informations numériques contre l'accès non autorisé, la corruption ou le vol tout au long de leur cycle de vie.
+        \vspace{0.2cm}
+
+    \item \textbf{Metadata management:} Assurer une gestion efficace des informations qui décrivent et contextualisent les données de l'entreprise. Ce pilier se concentre sur la mise en place de systèmes et de processus pour collecter, stocker, gérer et exploiter les métadonnées de manière à améliorer la compréhension, l'utilisation et la gouvernance des données.
+        \vspace{0.2cm}
+
+    \item \textbf{Règles et politiques:} Définir un cadre précis de règles et de normes pour la gestion des données, qui couvre des aspects essentiels tels que la qualité des données, la confidentialité, l'accès aux données, et leur partage. Il est crucial que ces normes soient alignées avec les standards de l'industrie et adaptées aux évolutions technologiques et réglementaires.
+        \vspace{0.2cm}
+
+    \item \textbf{Data privacy:} La confidentialité des données implique le traitement adéquat de données sensibles, y compris les données personnelles, financières et de propriété intellectuelle, afin de respecter les réglementations et garantir la confidentialité et l'intégrité des données.
+        \vspace{0.2cm}
+
+    \item \textbf{Data architecture:}
+    
+    \begin{itemize}
+        \vspace{0.2cm}
+
+        \item \textbf{Conception de l'architecture:} Définir une architecture de données qui supporte les processus d'ingestion automatisés. Cela inclut l'identification des sources de données pertinentes, la planification de la structure des schémas de données, et la définition des chemins de flux de données. L'architecture doit être flexible pour s'adapter aux évolutions des exigences de données et robuste pour gérer les volumes élevés de données.
+            \vspace{0.2cm}
+
+        \item \textbf{Intégration des systèmes:} Assurer que l'architecture de données facilite l'intégration transparente des divers systèmes et plateformes, permettant une ingestion des données fluide à partir de multiples sources.
+            \vspace{0.2cm}
+
+        \item \textbf{Scalabilité et performance:} Concevoir l'architecture pour qu'elle soit scalable, capable de gérer l'augmentation des volumes de données sans dégradation de la performance. Cela inclut la planification de la capacité de stockage et des ressources de traitement.
+    \end{itemize}
+        \vspace{0.2cm}
+
+    \item \textbf{Outillage:} Cet axe constitue le support technique des axes ci-dessus, répondant aux différents besoins émanant de ce qui précède.
+\end{itemize}
+        \vspace{0.2cm}
+Une gouvernance efficace des données permet, entre autres, une meilleure gestion de données, ce qui se traduit par une prise de décision éclairée. Dans le cadre de ce projet, nous allons implémenter un système aligné avec les piliers fondamentaux de la gouvernance des données déjà mentionnés, en incluant des fonctionnalités innovantes qui s'alignent avec les solutions les plus récentes du marché.
+
+
+
+\section{Analyse de l'existant}
+
+L'objectif principal de cette analyse est de comprendre le contexte actuel, d'identifier les failles et les points d'amélioration, et de poser les bases d'une évolution future plus performante. Cela a été réalisé en abordant des questions clés liées aux processus, aux outils en place, aux parties prenantes et aux limites rencontrées.
+
+\subsection{Situation actuelle}
+
+L'organisation utilise principalement des fichiers Excel pour gérer les métadonnées. Bien que cette méthode réponde aux besoins de base, plusieurs limitations sont apparues, notamment :
+
+\begin{itemize}
+    \item \textbf{Manque d'automatisation :} Toutes les actions, telles que la recherche, la mise à jour et l'ajout de nouvelles métadonnées, sont réalisées manuellement.
+    \item \textbf{Absence de centralisation :} Les données sont dispersées dans différents fichiers, ce qui complique leur accessibilité et leur exploitation.
+    \item \textbf{Faible flexibilité :} Les modifications sont effectuées ad hoc, sans processus standardisé ou outils spécifiques pour faciliter les opérations.
+\end{itemize}
+
+\subsection{Gestion et structure des données}
+
+Actuellement, l'organisation travaille principalement avec \textbf{des données structurées} sous forme de \textbf{fichiers CSV ou de tables}. Cette approche simplifie l'exploitation des informations mais souffre de l'absence d'une plateforme centralisée pour la gestion et la consultation des données.
+
+En ce qui concerne la \textbf{mise à jour des métadonnées}, aucun processus automatisé ou standardisé n'existe. Les modifications se font de manière \textbf{ponctuelle et en fonction des besoins spécifiques} des métiers, ce qui engendre une gestion disparate et parfois incohérente des données.
+
+Bien qu'une \textbf{équipe dédiée} soit chargée de cette gestion, les méthodes actuelles reposent en grande partie sur des processus \textbf{manuels}, ce qui réduit l'efficacité globale. Cela se traduit par plusieurs limites :
+
+\begin{itemize}
+    \item \textbf{Suivi et maintenance des données :} L'absence d'un référentiel centralisé rend difficile l'identification des versions les plus récentes.
+    \item \textbf{Accessibilité des informations :} Les utilisateurs doivent souvent consulter manuellement plusieurs fichiers, ce qui est une tâche lente et inefficace.
+    \item \textbf{Scalabilité :} Avec l'augmentation du volume de données, la gestion manuelle devient insoutenable à long terme.
+\end{itemize}
+
+\subsection{Défis identifiés}
+
+L'analyse a permis de dégager plusieurs défis majeurs :
+
+\begin{itemize}
+    \item \textbf{Recherche inefficace :} L'accès à des informations spécifiques est long et peu intuitif.
+    \item \textbf{Manque de sécurité :} Les données sensibles ne sont pas suffisamment protégées par les mécanismes en place.
+    \item \textbf{Gestion complexe :} La gestion manuelle des données augmente les risques d'erreurs et ralentit la productivité.
+    \item \textbf{Difficulté d'intégration :} L'ajout de nouveaux documents ou métadonnées est un processus lent et complexe.
+\end{itemize}
+
+
+
+
+\section{Analyse Fonctionnelle et Non Fonctionnelle}
+
+\subsection{Analyse Fonctionnelle}
+
+L'analyse fonctionnelle décrit les fonctionnalités attendues du système, c'est-à-dire \textbf{ce que l'application doit faire} pour répondre aux besoins des utilisateurs.
+
+\subsubsection{Besoins Fonctionnels}
+
+Le projet \textbf{Assistant Catalogue de Données (RAG)} doit répondre à plusieurs besoins fonctionnels pour assurer une gestion efficace et intuitive des métadonnées.
+    \vspace{0.3cm}
+
+\textbf{ Recherche et interaction en langage naturel}
+    \vspace{0.3cm}
+
+\begin{itemize}
+    \item \textbf{Recherche en langage naturel} : Le chatbot doit comprendre et traiter des requêtes formulées en langage courant.
+    \item \textbf{Extraction d'information pertinente} : Le système doit récupérer uniquement les données les plus pertinentes en fonction de la requête de l'utilisateur.
+    \item \textbf{Génération de réponses contextuelles} : Le chatbot doit être capable de produire des réponses cohérentes et adaptées, en se basant sur les informations extraites.
+    \item \textbf{Interaction conversationnelle} : Le chatbot doit maintenir un dialogue fluide et intelligent, en conservant le contexte des échanges avec l'utilisateur.
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{ Gestion des métadonnées}
+    \vspace{0.3cm}
+
+\begin{itemize}
+    \item \textbf{Ajout et mise à jour des métadonnées} : Permettre aux utilisateurs autorisés d'ajouter de nouvelles métadonnées via une interface dédiée.
+    \item \textbf{Suivi des modifications} : Assurer la traçabilité des mises à jour effectuées sur les métadonnées en enregistrant chaque modification.
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{ Personnalisation et recommandations}
+    \vspace{0.3cm}
+
+\begin{itemize}
+    \item \textbf{Personnalisation des réponses} : Offrir des réponses adaptées en fonction de l'historique ou du rôle de l'utilisateur.
+
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{ Exportation et partage des résultats}
+    \vspace{0.3cm}
+
+\begin{itemize}
+    \item \textbf{Exportation des résultats} : Permettre à l'utilisateur d'exporter les résultats de la recherche sous des formats comme CSV, PDF, etc., ou de les partager via des moyens électroniques (email, lien, etc.).
+\end{itemize}
+
+\subsection{Analyse Non Fonctionnelle}
+
+L'analyse non fonctionnelle définit les \textbf{contraintes et exigences techniques} du projet, c'est-à-dire \textbf{comment} le système doit fonctionner.
+    \vspace{0.1cm}
+
+\textbf{Exigences de Performance}
+    \vspace{0.3cm}
+
+\begin{itemize}
+    \item \textbf{Temps de réponse rapide} : Le chatbot doit répondre en \textbf{moins de 2 secondes} pour assurer une interaction fluide avec l'utilisateur.
+    \item \textbf{Disponibilité élevée} : Le système doit garantir une disponibilité pour assurer une accessibilité continue aux utilisateurs.
+    \item \textbf{Scalabilité} : Le système doit être capable de gérer une augmentation du volume de données et du nombre d'utilisateurs sans perte de performance.
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{Exigences de Sécurité}
+    \vspace{0.3cm}
+\begin{itemize}
+    \item \textbf{Gestion des accès} : Mise en place d'un système de gestion des rôles (administrateur, utilisateur, lecteur) pour limiter l'accès aux données sensibles.
+    \item \textbf{Authentification } : Les données doivent être protégées via des protocoles de sécurités 
+    \item \textbf{Conformité aux normes} : Respect des normes de sécurité et de confidentialité comme le \textbf{RGPD} pour protéger les données personnelles des utilisateurs.
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{Exigences d'Utilisabilité}
+    \vspace{0.3cm}
+\begin{itemize}
+    \item \textbf{Interface ergonomique} : L'interface web doit être intuitive et facile à utiliser, réduisant le besoin de formation.
+    \item \textbf{Accessibilité} : L'interface doit être compatible avec les principaux navigateurs et s'adapter aux différents appareils (PC, mobile, tablette).
+    \item \textbf{Support multilingue} : Le système doit supporter plusieurs langues en fonction des besoins des utilisateurs.
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{Exigences de Fiabilité}
+    \vspace{0.3cm}
+\begin{itemize}
+    \item \textbf{Tolérance aux pannes} : Le système doit disposer de mécanismes de récupération en cas d'erreurs ou de pannes.
+
+\end{itemize}
+    \vspace{0.1cm}
+
+\textbf{Exigences de Maintenabilité}
+    \vspace{0.3cm}
+\begin{itemize}
+    \item \textbf{Modularité} : Le système doit être conçu pour permettre des modifications ou ajouts de fonctionnalités sans perturber les autres parties du projet.
+    \item \textbf{Documentation} : Une documentation claire et complète doit être disponible pour assurer la maintenance et l'évolution du système.
+\end{itemize}
+
+\section{Benchmarking des Technologies et Modèles d'IA}
+
+Dans le cadre du développement du projet, il est essentiel d'évaluer les technologies disponibles afin de sélectionner celles qui répondent le mieux aux exigences du système. Cette section propose une analyse comparative des principaux frameworks de développement, bases de données et modèles d'intelligence artificielle utilisés pour optimiser l'application.
+
+\subsection{Comparaison des Technologies pour le Développement Web}
+
+Le choix des technologies web influence directement les performances, la maintenabilité et l'expérience utilisateur. Nous analysons ici les frameworks frontend et backend les plus pertinents.
+
+\subsubsection{Frameworks Frontend}
+
+Le framework frontend joue un rôle crucial dans l'expérience utilisateur et la performance de l'application.  
+
+\begin{table}[H]
+    \centering
+     \caption{Comparaison entre React.js et Vue.js}
+    \arrayrulecolor{black}
+    \setlength{\arrayrulewidth}{1pt}
+    \setlength{\tabcolsep}{8pt}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabularx}{\textwidth}{|p{4cm}|>{\columncolor{orange!50}}X|X|}
+        \hline
+        \rowcolor{gray!20} \textbf{Critères} & \textbf{React.js} & \textbf{Vue.js} \\
+        \hline
+        \textbf{Architecture} & Basée sur les composants, utilise JSX & Basée sur les composants, utilise HTML \\
+        \hline
+        \textbf{Performance} & Haute performance avec Virtual DOM & Léger et rapide, adapté aux petites applications \\
+        \hline
+        \textbf{Courbe d'apprentissage} & Modérée à élevée, nécessite l'apprentissage de JSX & Facile à prendre en main, syntaxe intuitive \\
+        \hline
+        \textbf{Communauté et écosystème} & Large communauté, nombreuses bibliothèques tierces & Communauté en croissance avec un écosystème riche \\
+        \hline
+        \textbf{Cas d'utilisation} & Applications complexes et évolutives & Applications légères à moyennement complexes \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+
+    \label{tab:comparaison_react_vue}
+\end{table}
+
+\subsubsection{Frameworks Backend}
+
+Le backend gère les requêtes, l'accès aux bases de données et la scalabilité de l'application. :
+
+\begin{table}[H]
+    \centering
+      \caption{Comparaison entre FastAPI, Flask et Django}
+    \arrayrulecolor{black}
+    \setlength{\arrayrulewidth}{1pt}
+    \setlength{\tabcolsep}{8pt}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabularx}{\textwidth}{|p{4cm}|>{\columncolor{orange!50}}X|X|X|}
+        \hline
+        \rowcolor{gray!20} \textbf{Critères} & \textbf{FastAPI} & \textbf{Flask} & \textbf{Django} \\
+        \hline
+        \textbf{Type} & Framework web moderne pour APIs & Micro-framework web & Framework web complet \\
+        \hline
+        \textbf{Langage} & Python & Python & Python \\
+        \hline
+        \textbf{Performance} & Très élevée (support asynchrone) & Bonne, mais inférieure à FastAPI & Moins performante en raison de sa structure monolithique \\
+        \hline
+        \textbf{Fonctionnalités} & Documentation automatique, validation des données & Léger, nécessite des extensions & ORM intégré, système d'authentification, panneau admin \\
+        \hline
+        \textbf{Cas d'utilisation} & APIs performantes, applications asynchrones & Petites applications, prototypes & Applications complexes nécessitant une structure robuste \\
+        \hline
+    \end{tabularx}
+  
+    \label{tab:comparaison_fastapi_flask_django}
+\end{table}
+\subsection{Comparaison des Modèles d'Intelligence Artificielle}
+
+Le choix du modèle d'Intelligence Artificielle (IA) est crucial, car il influence la pertinence des résultats générés par le système. Différents modèles sont accessibles selon leurs caractéristiques techniques, tels que la taille de la fenêtre contextuelle, la date de coupure des connaissances, ou encore leurs capacités multimodales. La table ci-dessous présente une comparaison entre les principaux modèles d'IA actuels, en mettant en avant ces critères clés pour mieux comprendre leurs avantages et limites.
+
+\renewcommand{\arraystretch}{1.5}
+\begin{table}[H]
+    \centering
+    \caption{Comparaison des principaux modèles d'Intelligence Artificielle}
+    \begin{adjustbox}{width=\textwidth}
+        \begin{tabular}{|p{2.3cm}|p{2.5cm}|p{3cm}|p{3.2cm}|p{2.5cm}|p{2.5cm}|p{2.7cm}|}
+            \hline
+            \rowcolor{gray!20} \textbf{Modèle} & \textbf{Accessibilité} & \textbf{Taille de la fenêtre contextuelle} & \textbf{Date de coupure des connaissances} & \textbf{Capacités multimodales} & \textbf{Exigences en mémoire} & \textbf{Langues supportées} \\
+            \hline
+            GPT-3.5 & Commercial & Jusqu'à 4,096 tokens & Septembre 2021 & Non & Élevé & Multilingue \\
+            \hline
+            GPT-4 & Commercial & Jusqu'à 32,768 tokens & Octobre 2023 & Oui & Élevé & Multilingue \\
+            \hline
+            Phi-3 (Microsoft) & Open source & 64,000 tokens & Fin 2023 & Oui & Élevé & Multilingue \\
+            \hline
+            Gemini 1.5 & Commercial & Jusqu'à 100,000 tokens & Novembre 2023 & Oui & Élevé & Multilingue \\
+            \hline
+            Llama 3 & Open Source & 8,000 tokens & Mars 2023 & Non & Moyen & Multilingue \\
+            \hline
+            \rowcolor{orange!50} Llama 3.3 & Open Source & 128,000 tokens & Décembre 2023 & Non & Moyen & Multilingue \\
+            \hline
+            Claude 3.5 Sonnet & Commercial & Jusqu'à 200,000 tokens & Avril 2024 & Oui (partiel) & Élevé & Multilingue \\
+            \hline
+            DeepSeek R1 & Open Source & 128,000 tokens & 2024 & Non & Élevé & Multilingue \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+\subsection{Embedding et Vectorisation}
+
+L'embedding et la vectorisation permettent de convertir des données textuelles en vecteurs numériques utilisables par des modèles d'IA. Chaque outil se distingue par ses caractéristiques, notamment la dimensionnalité des vecteurs, la prise en charge de plusieurs langues et la rapidité. La table suivante présente les principaux outils utilisés pour ces processus.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparaison des outils d'Embedding et Vectorisation}
+    \begin{adjustbox}{width=\textwidth}
+        \begin{tabular}{|p{2.5cm}|p{2.5cm}|p{3cm}|p{2cm}|p{2cm}|p{4cm}|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Outil} & \textbf{Dimension} & \textbf{Multilinguisme} & \textbf{Vitesse} & \textbf{Coût} & \textbf{Spécificités Techniques} \\
+            \hline
+            \rowcolor{orange!50}
+            Hugging Face & 384-1024 & Excellent (50+ langues) & Moyen & Gratuit & Modèles pré-entraînés personnalisables \\
+            \hline
+            OpenAI Embeddings & 1536 & Limité & Rapide & Payant & Haute qualité, intégration GPT \\
+            \hline
+            Voyage AI & 1024 & Moyen & Très rapide & Payant & Optimisé pour RAG \\
+            \hline
+            BGE (BAAI) & 768 & Excellent & Rapide & Gratuit & Performance sur documents techniques \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+\subsection{Stockage Vectoriel}
+
+Le stockage vectoriel est essentiel pour organiser et rechercher des données transformées en vecteurs. La performance de ces solutions dépend de leur capacité de stockage, leur vitesse de recherche, leur précision, et leur coût. Voici un aperçu des solutions de stockage vectoriel populaires et de leurs caractéristiques.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparaison des solutions de stockage vectoriel}
+    \begin{adjustbox}{width=\textwidth}
+        \begin{tabular}{|p{2cm}|p{3cm}|p{2.5cm}|p{2.5cm}|p{2cm}|p{4cm}|}
+            \hline
+            \rowcolor{gray!20}
+            \textbf{Solution} & \textbf{Capacité de Stockage} & \textbf{Vitesse de Recherche} & \textbf{Précision} & \textbf{Prix} & \textbf{Caractéristiques Uniques} \\
+            \hline
+            Pinecone & Illimitée & Très rapide & Élevée & Payant & Gestion cloud native \\
+            \hline
+            Weaviate & 1-100 milliards & Rapide & Très bonne & Freemium & Filtrage sémantique avancé \\
+            \hline
+            Milvus & Potentiellement illimitée & Rapide & Excellente & Open-source & Supporte GPU, très scalable \\
+            \hline
+            Chroma & 100 millions+ & Moyen & Bonne & Gratuit & Simplicité d'utilisation \\
+            \hline
+            \rowcolor{orange!50} 
+            Qdrant & 1-100 milliards & Rapide & Très bonne & Open-source & Filtres complexes intégrés \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+\section*{Synthèse}
+Dans ce chapitre d'analyse, nous avons d'abord exposé le cadre conceptuel de la gouvernance des données, en mettant en lumière ses piliers essentiels, à savoir la qualité des données, la sécurité, l'accessibilité, et la conformité. Par la suite, nous avons identifié et détaillé les besoins fonctionnels et non fonctionnels du système, en prenant en compte les attentes des utilisateurs finaux ainsi que les impératifs techniques. Nous avons également abordé les contraintes organisationnelles et légales qui influencent la mise en place de cette gouvernance. Enfin, une analyse comparative des solutions existantes a permis de poser les bases d'une approche sur-mesure, alignée avec les objectifs de notre projet.
+\chapter{Phase de conception}
+
+La phase de conception constitue l'étape charnière entre l'analyse des besoins et l'implémentation concrète du système. Elle transforme les spécifications fonctionnelles et non fonctionnelles en une architecture opérationnelle capable d'atteindre les objectifs du projet. Notre approche méthodique intègre différents modèles et diagrammes pour garantir une solution robuste et efficace pour notre Assistant Catalogue de Données basé sur RAG.
+
+\section{Vue d'ensemble du système}
+
+\subsection{Diagramme de Cas d'Utilisation}
+Le diagramme de cas d'utilisation illustré dans la figure~\ref{fig:usecase_diagram} offre une vision globale des interactions principales entre les utilisateurs et le système. Il identifie clairement les fonctionnalités essentielles qui serviront de base à notre conception détaillée.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{image/Diagramme de cas d'utilisation (1).png}
+    \caption{Diagramme de cas d'utilisation du système}
+    \label{fig:usecase_diagram}
+\end{figure}
+
+\section{Architecture technique du système RAG}
+
+\subsection{Présentation de l'Architecture}
+Notre système repose sur l'approche \textit{Retrieval-Augmented Generation} (RAG), qui combine de manière innovante la recherche d'information et les capacités génératives des modèles de langage. La figure~\ref{fig:architecture_rag} présente l'architecture complète, montrant l'interaction entre la base de données vectorielle et le modèle de langage (\textit{LLM}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{image/architecture RAG .png}
+    \caption{Architecture du système RAG}
+    \label{fig:architecture_rag}
+\end{figure}
+
+\subsection{Flux d'exécution du système}
+Le système suit un flux d'exécution séquentiel bien défini, qui peut être divisé en deux phases principales : la phase d'ingestion des données et la phase de traitement des requêtes.
+
+\subsubsection{Phase 1 : Ingestion et indexation des données}
+Cette phase préparatoire comprend les étapes suivantes :
+
+\begin{enumerate}
+    \item \textbf{Ingestion des données} : Collection et importation des données depuis diverses sources.
+    
+    \item \textbf{Segmentation (\textit{chunking})} : Division des documents en fragments exploitables pour une indexation efficace.
+    
+    \item \textbf{Création des embeddings} : Transformation des fragments textuels en représentations vectorielles via un modèle d'encodage spécialisé.
+    
+    \item \textbf{Indexation vectorielle} : Stockage des embeddings dans une base de données vectorielle optimisée pour les recherches de similarité.
+\end{enumerate}
+
+\subsubsection{Phase 2 : Traitement des requêtes et génération de réponses}
+Cette phase d'exécution dynamique s'active lors de l'interaction avec l'utilisateur :
+
+\begin{enumerate}
+    \item \textbf{Réception et encodage de la requête} : La question de l'utilisateur est vectorisée avec le même encodeur utilisé pour l'indexation.
+    
+    \item \textbf{Recherche sémantique} : Le système interroge la base de données vectorielle pour identifier les fragments les plus pertinents par rapport à la requête.
+    
+    \item \textbf{Récupération du contexte} : Les documents ou fragments identifiés sont extraits pour enrichir la requête.
+    
+    \item \textbf{Construction de la requête augmentée} : Une requête enrichie est formée en combinant la question originale et le contexte pertinent récupéré.
+    
+    \item \textbf{Génération de la réponse} : Le modèle de langage (\textit{LLM}) traite la requête augmentée pour produire une réponse précise et contextuelle.
+    
+    \item \textbf{Présentation à l'utilisateur} : La réponse générée est formatée et transmise à l'utilisateur via l'interface.
+\end{enumerate}
+
+\subsection{Avantages stratégiques de l'architecture RAG}
+Notre architecture présente plusieurs avantages déterminants pour l'efficacité du système :
+
+\begin{itemize}
+    \item \textbf{Précision et pertinence accrues} : Contrairement aux modèles génératifs standards, notre système s'appuie sur des données factuelles indexées, garantissant des réponses alignées sur le corpus documentaire de l'organisation.
+    
+    \item \textbf{Réduction significative des hallucinations} : L'ancrage des réponses dans des sources vérifiables minimise considérablement le risque de génération d'informations inexactes ou inventées.
+    
+    \item \textbf{Adaptabilité aux connaissances spécifiques} : Le système peut être adapté à des domaines spécialisés en indexant simplement les documents pertinents, sans nécessiter un réentraînement coûteux du modèle.
+    
+    \item \textbf{Évolutivité et performance} : L'architecture vectorielle permet une mise à l'échelle efficace pour gérer des volumes croissants de données tout en maintenant des temps de réponse optimaux.
+\end{itemize}
+
+\section{Dynamique des interactions}
+
+\subsection{Diagramme de Séquence}
+Le diagramme de séquence présenté dans la figure~\ref{fig:sequence_diagram} détaille les interactions temporelles entre les différents composants du système. Il illustre précisément l'enchaînement des opérations, depuis la soumission d'une requête jusqu'à l'obtention de la réponse finale.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{image/Diagramme_sequence-Page-1.drawio.png}
+    \caption{Diagramme de séquence du système}
+    \label{fig:sequence_diagram}
+\end{figure}
+
+Cette visualisation des flux d'exécution permet de comprendre les dépendances temporelles entre les modules et constitue un guide essentiel pour l'implémentation des différentes fonctionnalités du système.
+
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+Ce rapport de stage a présenté la conception et le développement d'un Assistant de Catalogue de Données basé sur une architecture de type RAG (Retrieval-Augmented Generation) pour le Groupe Banque Populaire. À travers les différentes phases du projet, nous avons établi un cadre méthodologique solide pour répondre aux besoins de gouvernance des données de l'entreprise.
+
+La phase de cadrage a permis de définir précisément le contexte, les problématiques et les objectifs du projet, en mettant l'accent sur l'amélioration de l'accessibilité et de l'exploitation du patrimoine de données. 
+
+L'analyse approfondie a ensuite exploré les enjeux de la gouvernance des données, l'état des systèmes existants, et a identifié les besoins fonctionnels et non fonctionnels essentiels pour la solution. Cette étape a également permis de comparer et de sélectionner les technologies les plus adaptées pour le développement.
+
+La phase de conception a abouti à une architecture technique robuste, centrée sur l'approche RAG, combinant la puissance des modèles de langage avec une recherche sémantique précise. Les diagrammes UML réalisés ont fourni une vision claire des interactions et des flux de données au sein du système.
+
+Au terme de ce projet, nous pouvons constater que l'Assistant de Catalogue de Données représente une avancée significative pour la gouvernance des données au sein du groupe BCP. Il répond aux enjeux majeurs identifiés au départ, notamment en matière d'accessibilité, de qualité et de valorisation des données.
+
+\end{document}
