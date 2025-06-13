@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiPieChart, FiX } from "react-icons/fi";
+import { FiPieChart, FiX, FiDownload } from "react-icons/fi";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 function AdminFeedbackStats({ feedbackData, onClose }) {
     // Calculer les statistiques des feedbacks
@@ -187,20 +189,64 @@ function AdminFeedbackStats({ feedbackData, onClose }) {
         }
     }, [stats, mainChartData, problemChartData]);
 
+    const handleExportPDF = async () => {
+        try {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const statsContainer = document.getElementById('stats-container');
+            
+            // Capture the stats container
+            const canvas = await html2canvas(statsContainer, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 210; // A4 width in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Add title
+            pdf.setFontSize(20);
+            pdf.text('Statistiques des Feedbacks', 105, 20, { align: 'center' });
+            
+            // Add date
+            pdf.setFontSize(12);
+            pdf.text(`Généré le ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+            
+            // Add the image
+            pdf.addImage(imgData, 'PNG', 0, 40, imgWidth, imgHeight);
+            
+            // Save the PDF
+            pdf.save('statistiques-feedbacks.pdf');
+        } catch (error) {
+            console.error('Erreur lors de la génération du PDF:', error);
+            alert('Une erreur est survenue lors de la génération du PDF');
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold text-bp-orange"><FiPieChart className="inline mr-2" /> Statistiques des Feedbacks</h2>
-                    <button 
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        <FiX size={24} />
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={handleExportPDF}
+                            className="text-sm bg-bp-orange hover:bg-bp-orange-bright text-white py-2 px-4 rounded-lg flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200"
+                            title="Télécharger en PDF"
+                        >
+                            <FiDownload size={20} className="inline" /> Télécharger les statistiques
+                        </button>
+                        <button 
+                            onClick={onClose}
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            <FiX size={24} />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8">
+                <div id="stats-container" className="flex flex-col md:flex-row gap-8">
                     {/* Diagramme principal */}
                     <div className="flex-1">
                         <h3 className="text-lg font-medium mb-4 text-center">Distribution des Feedbacks</h3>

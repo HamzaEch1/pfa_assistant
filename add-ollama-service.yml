@@ -1,0 +1,30 @@
+# Service OLLAMA à ajouter dans votre docker-compose.yml
+
+# Service OLLAMA pour LLM
+ollama:
+  image: ollama/ollama:latest
+  container_name: ollama
+  ports:
+    - "11434:11434"
+  volumes:
+    - ollama_data:/root/.ollama
+  environment:
+    - OLLAMA_ORIGINS=*
+  restart: unless-stopped
+  networks:
+    - rag_network
+  deploy:
+    resources:
+      limits:
+        memory: 8G
+      reservations:
+        memory: 4G
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+# À ajouter aussi dans la section volumes:
+volumes:
+  ollama_data: 

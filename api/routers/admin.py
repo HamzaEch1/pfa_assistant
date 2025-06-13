@@ -81,6 +81,19 @@ async def set_user_admin_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found or update failed")
     return updated_user
 
+@router.put("/users/{username}/active-status", response_model=UserAdminView)
+async def set_user_active_status(
+    is_active: bool = Body(..., embed=True), # Expect {"is_active": true/false} in body
+    username: str = Path(..., description="The username of the user to modify")
+):
+    """Sets the active status for a user (Admin only)."""
+    logger.info(f"Admin action: Setting active status to {is_active} for user '{username}'")
+    updated_user = crud_user.update_user_active_status(username=username, is_active=is_active)
+    if not updated_user:
+        logger.warning(f"Admin action: Failed to update active status for user '{username}' (not found or other error).")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found or update failed")
+    return updated_user
+
 @router.put("/users/{user_id}/email", response_model=User)
 async def update_user_email_route(
      request: UpdateAdminEmailRequest,

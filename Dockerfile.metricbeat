@@ -1,0 +1,16 @@
+FROM docker.elastic.co/beats/metricbeat:8.12.1
+
+USER root
+
+# Copier la configuration personnalisée
+COPY metricbeat/metricbeat.yml /usr/share/metricbeat/metricbeat.yml
+
+# Activer le module Docker
+RUN metricbeat modules enable docker
+
+# Corriger les permissions
+RUN chmod 644 /usr/share/metricbeat/metricbeat.yml && \
+    chown root:root /usr/share/metricbeat/metricbeat.yml
+
+# Retour à l'utilisateur par défaut
+USER metricbeat 

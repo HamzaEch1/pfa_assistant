@@ -1,6 +1,7 @@
 metricbeat.config:
   modules:
     path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
 
 metricbeat.modules:
 - module: system
@@ -15,6 +16,7 @@ metricbeat.modules:
     - fsstat
   enabled: true
   period: 10s
+  processes: ['.*']
 
 - module: docker
   metricsets:
@@ -28,21 +30,38 @@ metricbeat.modules:
     - network
   hosts: ["unix:///var/run/docker.sock"]
   period: 10s
+  enabled: true
 
 processors:
   - add_host_metadata: ~
   - add_docker_metadata: ~
-  - add_cloud_metadata: ~
 
+# FORCER l'utilisation d'index classiques
 output.elasticsearch:
-  hosts: ["${ELASTICSEARCH_HOSTS}"]
+  hosts: ["${ELASTICSEARCH_HOSTS:elasticsearch:9200}"]
   index: "metricbeat-%{+yyyy.MM.dd}"
+  # Désactiver complètement le template automatique
+  template.enabled: false
 
-setup.kibana:
-  host: "${KIBANA_HOSTS}"
+# Désactiver complètement Kibana setup
+setup.kibana.enabled: false
 
-setup.template.name: "metricbeat"
-setup.template.pattern: "metricbeat-*"
-setup.template.enabled: true
-setup.template.overwrite: true
-setup.ilm.enabled: false 
+# Désactiver TOUT ce qui touche aux templates
+setup.template.enabled: false
+
+# Désactiver complètement ILM
+setup.ilm.enabled: false
+
+# Désactiver les data streams explicitement
+setup.data_stream.enabled: false
+
+# Désactiver les dashboards
+setup.dashboards.enabled: false
+
+# Configuration de logging plus détaillée pour diagnostiquer Docker
+logging.level: info
+logging.to_stderr: true
+logging.selectors: ["*"]
+
+# Réactiver le monitoring pour voir les statistiques
+monitoring.enabled: true 

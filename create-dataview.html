@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Créer Dataview Metricbeat</title>
+</head>
+<body>
+    <h1>Création du Dataview Metricbeat</h1>
+    <button onclick="createDataView()">Créer le Dataview</button>
+    <div id="result"></div>
+
+    <script>
+        async function createDataView() {
+            const kibanaUrl = 'http://localhost:5601';
+            const dataView = {
+                data_view: {
+                    title: 'metricbeat-*',
+                    name: 'Metricbeat Monitoring',
+                    timeFieldName: '@timestamp'
+                }
+            };
+
+            try {
+                const response = await fetch(`${kibanaUrl}/api/data_views/data_view`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'kbn-xsrf': 'true'
+                    },
+                    body: JSON.stringify(dataView)
+                });
+
+                const result = await response.json();
+                document.getElementById('result').innerHTML = 
+                    `<h2>Résultat:</h2><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                
+                if (response.ok) {
+                    alert('✅ Dataview créé avec succès ! Rafraîchissez Kibana.');
+                } else {
+                    alert('❌ Erreur lors de la création: ' + result.message);
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<h2>Erreur:</h2><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -24,9 +24,13 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL_NAME: str = os.getenv("EMBEDDING_MODEL_NAME", 'paraphrase-multilingual-MiniLM-L12-v2')
     # Optional: Add TRANSFORMERS_CACHE=/path/in/container if needed
 
-    OLLAMA_MODEL_NAME: str = os.getenv("OLLAMA_MODEL_NAME", "llama3:8b") # Defaulting to the likely correct quantized tag
+    OLLAMA_MODEL_NAME: str = os.getenv("OLLAMA_MODEL_NAME", "llama3:8b")
     OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://ollama:11434")
-    OLLAMA_CLIENT_TIMEOUT: int = int(os.getenv("OLLAMA_CLIENT_TIMEOUT", "600")) # Timeout for Ollama client operations (seconds)
+    OLLAMA_CLIENT_TIMEOUT: int = int(os.getenv("OLLAMA_CLIENT_TIMEOUT", "1800")) # Timeout for Ollama client operations (30 minutes)
+
+    # Configuration pour les requêtes longues
+    MAX_CONTENT_LENGTH: int = int(os.getenv("MAX_CONTENT_LENGTH", "104857600"))  # 100MB
+    REQUEST_TIMEOUT: int = int(os.getenv("REQUEST_TIMEOUT", "1800"))  # 30 minutes
 
     NUM_RESULTS_TO_RETRIEVE: int = int(os.getenv("NUM_RESULTS_TO_RETRIEVE", 18))
 

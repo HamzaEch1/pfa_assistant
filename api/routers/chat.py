@@ -269,14 +269,16 @@ EXEMPLE de formatage CORRECT pour liste:
 
 Question: """ + prompt
         
+        # CORRECTION: Utiliser d'abord la question originale pour la détection, puis appliquer le HTML si nécessaire
         assistant_response_content = await services.rag_service.get_rag_response(
-            user_query=html_prompt,  # Utiliser le prompt modifié
+            user_query=prompt,  # IMPORTANT: Utiliser la question originale pour la détection
             embedding_model=embedding_model,
             qdrant_client=qdrant_client,
             ollama_client=ollama_client,
             file_context=file_context,
             request_object=request,
-            conversation_history=conversation_history  # Passer l'historique de conversation récupéré
+            conversation_history=None,  # TEMPORAIRE: Désactiver l'historique pour résoudre le bug
+            html_formatting_request=html_prompt  # Nouveau paramètre pour le formatage HTML
         )
         assistant_message = Message(role="assistant", content=assistant_response_content)
         logger.info(f"Successfully processed RAG response for conversation {conversation_id}.")

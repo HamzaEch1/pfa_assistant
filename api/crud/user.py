@@ -307,3 +307,20 @@ def verify_2fa_code(user_id: int, code: str) -> bool:
     except Exception as e:
         logger.error(f"Error verifying 2FA code for user ID {user_id}: {e}", exc_info=True)
         return False
+
+def update_user_active_status(username: str, is_active: bool) -> Optional[UserAdminView]:
+    """Updates the active status of a user."""
+    logger.info(f"Updating active status for user '{username}' to {is_active}")
+    try:
+        with db_session() as cur:
+            cur.execute(
+                "UPDATE users SET is_active = %s WHERE username = %s RETURNING id, username, full_name, email, phone, is_admin, is_active, created_at",
+                (is_active, username)
+            )
+            record = cur.fetchone()
+            if record:
+                return UserAdminView(**record)
+            return None
+    except Exception as e:
+        logger.error(f"Error updating user active status: {e}", exc_info=True)
+        return None

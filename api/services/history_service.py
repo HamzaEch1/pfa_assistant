@@ -60,7 +60,7 @@ def generate_conversation_title(messages: List[Message]) -> str:
             llm_prompt = (
                 f'Question de l\'utilisateur: "{prompt_user_q}"\n'
                 f'Première réponse de l\'assistant: "{prompt_assistant_a}"\n\n'
-                f'Basé sur cette interaction, crée un titre de conversation court et pertinent (environ 5-7 mots). '
+                f'Basé sur cette interaction, crée un titre de conversation court et pertinent (environ 3-74mots). '
                 f'Ce titre ne doit PAS être une question. Le titre doit être en français.\n'
                 f'Titre suggéré:'
             )

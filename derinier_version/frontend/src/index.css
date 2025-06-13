@@ -1,0 +1,205 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Add some base body styling */
+body {
+  @apply font-sans antialiased text-gray-800 bg-gray-50;
+}
+
+/* --- Styling for HTML content in assistant messages --- */
+.assistant-content {
+  @apply text-gray-800;
+}
+
+/* Headings with better spacing and border-bottom for h1 and h2 */
+.assistant-content h1 {
+  @apply text-2xl font-bold mb-4 pb-2 border-b border-gray-200 text-gray-900;
+}
+
+.assistant-content h2 {
+  @apply text-xl font-bold mt-6 mb-3 pb-1 text-gray-900;
+}
+
+.assistant-content h3 {
+  @apply text-lg font-semibold mt-4 mb-2 text-gray-900;
+}
+
+/* Better paragraphs with line height */
+.assistant-content p {
+  @apply mb-2 leading-relaxed;
+}
+
+/* SOLUTION RADICALE: supprimer tous les sauts de ligne */
+.assistant-content br {
+  display: none;
+}
+
+/* Éliminer les paragraphes vides */
+.assistant-content p:empty,
+.assistant-content div:empty {
+  display: none;
+  margin: 0;
+  padding: 0;
+  height: 0;
+}
+
+/* Paragraphe spacing minimal */
+.assistant-content p {
+  margin-top: 0;
+  margin-bottom: 0.1rem;
+}
+
+/* Réduire l'espacement vertical dans les listes */
+.assistant-content p + p,
+.assistant-content li + li {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Solution radicale pour les listes */
+.assistant-content ul,
+.assistant-content ol {
+  display: block;
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+  padding-left: 1.5rem;
+  line-height: 1.1;
+  @apply pl-5;
+}
+
+.assistant-content ul {
+  @apply list-disc;
+}
+
+.assistant-content ol {
+  @apply list-decimal;
+}
+
+/* Éliminer tout l'espacement dans les éléments de liste */
+.assistant-content li {
+  display: list-item;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 1.1;
+}
+
+/* Style compact pour le contenu à l'intérieur des éléments de liste */
+.assistant-content li * {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 1.1;
+}
+
+/* Styled links */
+.assistant-content a {
+  @apply text-blue-600 hover:underline font-medium;
+}
+
+/* Enhanced code blocks */
+.assistant-content code {
+  @apply px-1.5 py-0.5 bg-gray-100 rounded text-sm text-pink-600 font-mono;
+}
+
+.assistant-content pre {
+  @apply p-4 bg-gray-100 rounded-lg mb-4 overflow-x-auto border border-gray-200;
+}
+
+.assistant-content pre code {
+  @apply bg-transparent text-gray-700 p-0 block;
+}
+
+/* Better tables */
+.assistant-content table {
+  @apply w-full border-collapse mb-4 text-sm;
+}
+
+.assistant-content th {
+  @apply bg-gray-50 border border-gray-300 px-3 py-2 text-left font-semibold;
+}
+
+.assistant-content td {
+  @apply border border-gray-200 px-3 py-2;
+}
+
+/* Nice blockquotes */
+.assistant-content blockquote {
+  @apply pl-4 border-l-4 border-gray-300 text-gray-600 italic mb-4 py-1;
+}
+
+/* Some extra utility classes for special cases */
+.assistant-content .highlight {
+  @apply bg-yellow-100 px-1 rounded;
+}
+
+.assistant-content .badge {
+  @apply inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full font-semibold;
+}
+
+.assistant-content .card {
+  @apply border border-gray-200 rounded-lg p-4 mb-4 bg-white shadow-sm;
+}
+
+/* --- End Styling for HTML content --- */
+
+/* --- Additions for Animated Gradient Background --- */
+@layer utilities {
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animated-gradient-background {
+    /* Define gradient using your theme colors (adjust as needed) */
+    /* Using white, light gray, and a subtle touch of orange */
+    background: linear-gradient(-45deg, #ffffff, #f8f9fa, #fff0e7, #f8f9fa, #ffffff);
+                                    /* bp-white, bp-gray-light, light-orange-tint, bp-gray-light, bp-white */
+    background-size: 400% 400%; /* Make background much larger than viewport */
+    animation: gradient-flow 20s ease infinite; /* Apply animation */
+  }
+}
+/* --- End Additions --- */
+
+/* Joyride Tour Styling */
+.react-joyride__tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-joyride__tooltip button {
+  border-radius: 4px !important;
+}
+
+.react-joyride__beacon {
+  animation: pulse 1.5s infinite !important;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* Make sure elements with Joyride classes have proper z-index */
+.conversation-list,
+.new-chat-button,
+.message-input,
+.file-upload,
+.feedback-buttons,
+.copy-button {
+  position: relative;
+  z-index: 1;
+}

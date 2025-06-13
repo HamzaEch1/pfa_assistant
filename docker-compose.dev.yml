@@ -53,9 +53,9 @@ services:
       QDRANT_URL: http://qdrant:6333
       QDRANT_GRPC_URL: qdrant:6334
       QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-banque_ma_data_catalog}
-      OLLAMA_HOST: http://host.docker.internal:11434 # Use host.docker.internal for Windows
-      OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-llama3:8b}
-      OLLAMA_CLIENT_TIMEOUT: "12000"
+      OLLAMA_HOST: http://host.docker.internal:11434 # Use host.docker.internal for Windows/macOS Docker Desktop
+      OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-phi3} # <--- MODIFIED LINE: Changed from llama3:8b to phi3
+      OLLAMA_CLIENT_TIMEOUT: "900"
       EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-paraphrase-multilingual-MiniLM-L12-v2}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY?err}
       NUM_RESULTS_TO_RETRIEVE: ${NUM_RESULTS_TO_RETRIEVE:-28}
@@ -145,6 +145,7 @@ services:
 volumes:
   qdrant_data:
   postgres_data:
+  # Removed ollama_data volume
 
 networks:
   rag_network:
@@ -152,4 +153,4 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.28.0.0/16 
+        - subnet: 172.28.0.0/16

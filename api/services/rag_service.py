@@ -1,6 +1,7 @@
 # api/services/rag_service.py
 import logging
 from typing import List, Optional, Dict, Any
+import re
 
 import ollama
 import httpx # Import httpx to catch potential timeout errors specifically
@@ -32,10 +33,63 @@ class RagGenerationError(Exception):
     pass
 
 class ClientDisconnectedError(Exception):
-    """Custom exception for when the client has disconnected."""
+    """Custom exception for client disconnection during processing."""
     pass
 
 # --- Helper Functions ---
+
+def _is_general_question(query: str) -> bool:
+    """Détecte si une question est générale et n'a pas besoin de contexte RAG."""
+    query_lower = query.lower().strip()
+    
+    # Questions de salutation
+    greetings = [
+        "bonjour", "salut", "hello", "hi", "bonsoir", "bonne journée",
+        "comment ça va", "comment allez-vous", "ça va"
+    ]
+    
+    # Questions sur le rôle/identité
+    role_questions = [
+        "qui êtes-vous", "qui es-tu", "quel est votre rôle", "quel est ton rôle",
+        "que faites-vous", "que fais-tu", "à quoi servez-vous", "à quoi sers-tu",
+        "comment pouvez-vous m'aider", "comment peux-tu m'aider", "pouvez-vous m'aider",
+        "que puis-je vous demander", "que puis-je te demander"
+    ]
+    
+    # Questions générales sur les capacités
+    general_questions = [
+        "comment ça marche", "comment ça fonctionne", "que savez-vous faire",
+        "que sais-tu faire", "comment vous utilisez", "comment t'utiliser"
+    ]
+    
+    # Remerciements
+    thanks = [
+        "merci", "merci beaucoup", "thank you", "thanks"
+    ]
+    
+    # Test simple au revoir
+    goodbye = [
+        "au revoir", "goodbye", "bye", "à bientôt"
+    ]
+    
+    all_general_patterns = greetings + role_questions + general_questions + thanks + goodbye
+    
+    # Test direct
+    for pattern in all_general_patterns:
+        if pattern in query_lower:
+            return True
+    
+    # Test pour des questions très courtes (moins de 20 caractères sans termes techniques)
+    if len(query_lower) < 20:
+        technical_terms = [
+            "compte", "client", "banque", "agence", "trésorerie", "donnée", "données",
+            "fichier", "sql", "base", "flux", "registre", "limite", "crédit"
+        ]
+        has_technical_terms = any(term in query_lower for term in technical_terms)
+        if not has_technical_terms:
+            return True
+    
+    return False
 
 def _get_embedding(query: str, embedding_model: SentenceTransformer) -> List[float]:
     """Generates embedding for the query."""
@@ -57,7 +111,6 @@ def _search_qdrant(query_embedding: List[float], qdrant_client: QdrantClient, qu
         important_terms = []
         if query_text:
             # Extraire les termes entre guillemets qui sont souvent importants
-            import re
             quoted_terms = re.findall(r'"([^"]*)"', query_text)
             for term in quoted_terms:
                 important_terms.append(term)
@@ -129,8 +182,12 @@ def _format_conversation_history(messages: List[Dict[str, Any]]) -> str:
     if not messages:
         return ""
     
-    history_text = "Historique de la conversation:\n"
-    for msg in messages:
+    # LIMITE: Prendre seulement les 2 derniers messages pour éviter un prompt trop long
+    # avec le modèle léger llama3.2:1b
+    recent_messages = messages[-2:] if len(messages) > 2 else messages
+    
+    history_text = "Historique récent de la conversation:\n"
+    for msg in recent_messages:
         # Vérifier si c'est un objet Pydantic (avec des attributs) ou un dictionnaire
         if hasattr(msg, 'role'):
             role = "Utilisateur" if msg.role == "user" else "Assistant"
@@ -139,6 +196,10 @@ def _format_conversation_history(messages: List[Dict[str, Any]]) -> str:
             # Fallback pour les dictionnaires (au cas où)
             role = "Utilisateur" if msg.get("role") == "user" else "Assistant"
             content = msg.get("content", "")
+        
+        # Limiter aussi la longueur de chaque message à 200 caractères max
+        if len(content) > 200:
+            content = content[:200] + "..."
         
         history_text += f"{role}: {content}\n\n"
     
@@ -149,50 +210,69 @@ async def _generate_response(query: str, context_chunks: List[str], ollama_clien
     if not context_chunks:
         context_string = "Aucun contexte pertinent trouvé." # Context notice in French
     else:
-        context_string = "\n---\n".join(context_chunks)
+        # OPTIMISATION AGRESSIVE pour modèle léger llama3.2:1b
+        max_chunks = 8 if conversation_history else 10  # Réduction drastique
+        limited_chunks = context_chunks[:max_chunks]
+        
+        # Limiter drastiquement la longueur de chaque chunk à 150 caractères max
+        truncated_chunks = []
+        for chunk in limited_chunks:
+            if len(chunk) > 150:
+                truncated_chunks.append(chunk[:150] + "...")
+            else:
+                truncated_chunks.append(chunk)
+        
+        context_string = "\n---\n".join(truncated_chunks)
 
-    # Format conversation history if provided
+    # Format conversation history if provided - VERSION ULTRA COURTE
     history_string = ""
     if conversation_history:
-        history_string = _format_conversation_history(conversation_history)
+        # Prendre seulement le DERNIER message pour éviter un prompt trop long
+        recent_messages = conversation_history[-1:] if conversation_history else []
+        
+        if recent_messages:
+            msg = recent_messages[0]
+            if hasattr(msg, 'role'):
+                role = "U" if msg.role == "user" else "A"  # Ultra court
+                content = msg.content
+            else:
+                role = "U" if msg.get("role") == "user" else "A"
+                content = msg.get("content", "")
+            
+            # Limiter à 100 caractères max
+            if len(content) > 100:
+                content = content[:100] + "..."
+                
+            history_string = f"Dernier: {role}: {content}\n"
+        
         logger.info(f"Including conversation history with {len(conversation_history)} messages")
     
-    # IMPROVED PROMPT FOR BETTER RESPONSES
-    prompt = f"""
-Tu es un assistant bancaire expert dans l'analyse de données pour Banque Populaire. 
-Ta mission est de fournir des réponses précises et pertinentes en te basant UNIQUEMENT sur les informations du contexte fourni.
-
-DIRECTIVES IMPORTANTES:
-1. Si le contexte ne contient pas d'information spécifique à la question, dis-le clairement: "Je ne dispose pas d'informations sur [sujet] dans mes données actuelles." 
-2. Ne tente jamais de deviner ou d'inventer des informations qui ne sont pas présentes dans le contexte.
-3. Sois précis et factuel dans tes réponses.
-4. Réponds UNIQUEMENT en français.
-5. Si la question mentionne une filiale, un domaine ou un champ spécifique, concentre-toi uniquement sur les informations relatives à ces éléments.
-6. Lorsque la question utilise des pronoms (par exemple 'il', 'elle', 'ceci', 'cela'), utilise l'historique de la conversation et plus précisement le dernier message pour déterminer à quoi le pronom se réfère. Ta réponse doit être pertinente par rapport au sujet identifié dans l'historique. Si le sujet n'est pas clair malgré l'historique, indique que le sujet de la question est ambigu.
+    # PROMPT ULTRA SIMPLIFIÉ pour modèle léger
+    prompt = f"""Assistant bancaire Banque Populaire. Français uniquement.
 
 {history_string}
-
 CONTEXTE:
----
 {context_string}
----
 
-QUESTION: {query}
+Q: {query}
+R:"""
 
-Réponse claire et précise:
-"""
     # End of improved prompt
 
     logger.info(f"Sending request to Ollama model: {settings.OLLAMA_MODEL_NAME}...")
-    # logger.debug(f"Full prompt sent to Ollama:\n{prompt}") # Optional: Uncomment to log full prompt
+    logger.info(f"Prompt length: {len(prompt)} characters")
 
     try:
-        # Use a specific higher timeout for this request, overriding client default
-        request_timeout = settings.OLLAMA_CLIENT_TIMEOUT
-        if len(prompt) > 2000:  # If prompt is large, increase timeout
-            request_timeout = max(request_timeout, 900)  # 15 minutes max for large prompts
+        # Timeouts encore plus agressifs
+        if len(prompt) > 2000:  # Prompt long
+            request_timeout = 180  # 3 minutes max
+            logger.warning(f"Large prompt detected ({len(prompt)} chars). Using extended timeout.")
+        elif len(prompt) > 1000:  # Prompt moyen
+            request_timeout = 90   # 1.5 minutes
+        else:  # Prompt court
+            request_timeout = 45   # 45 secondes
             
-        logger.info(f"Using request timeout of {request_timeout} seconds for Ollama request")
+        logger.info(f"Using optimized timeout of {request_timeout} seconds for Ollama request")
         
         # Note: ollama.Client timeout is set during initialization elsewhere (e.g., models.py or main app setup)
         response = await ollama_client.chat(
@@ -240,12 +320,14 @@ async def get_rag_response(
     ollama_client: ollama.AsyncClient,
     file_context: Optional[str] = None,
     request_object: Optional[Request] = None,
-    conversation_history: Optional[List[Dict[str, Any]]] = None
+    conversation_history: Optional[List[Dict[str, Any]]] = None,
+    html_formatting_request: Optional[str] = None
 ) -> str:
     """
     Generates a response using Retrieval-Augmented Generation.
     If file_context is provided, it prioritizes it and skips the general search.
     If conversation_history is provided, includes it for context.
+    If html_formatting_request is provided, uses it for technical questions that need HTML formatting.
     Raises specific exceptions on failure.
     Checks for client disconnection if request_object is provided.
     """
@@ -254,6 +336,11 @@ async def get_rag_response(
     if request_object and await request_object.is_disconnected():
         logger.warning("Client disconnected before RAG processing started.")
         raise ClientDisconnectedError()
+
+    # Détecter les questions générales et y répondre directement
+    if _is_general_question(user_query):
+        logger.info("General question detected. Providing direct response without RAG.")
+        return await _generate_general_response(user_query, ollama_client)
 
     query_embedding = _get_embedding(user_query, embedding_model)
 
@@ -274,8 +361,11 @@ async def get_rag_response(
         logger.warning("Client disconnected after context retrieval.")
         raise ClientDisconnectedError()
     
+    # Pour les questions techniques, utiliser le formatage HTML si demandé
+    final_query = html_formatting_request if html_formatting_request else user_query
+    
     assistant_response = await _generate_response(
-        query=user_query, 
+        query=final_query, 
         context_chunks=context_chunks, 
         ollama_client=ollama_client,
         conversation_history=conversation_history
@@ -288,3 +378,41 @@ async def get_rag_response(
 
     logger.info("RAG Service: Successfully generated response based on provided context and conversation history.")
     return assistant_response
+
+async def _generate_general_response(query: str, ollama_client: ollama.AsyncClient) -> str:
+    """Génère une réponse appropriée pour les questions générales sans contexte RAG."""
+    query_lower = query.lower().strip()
+    
+    # Réponses prédéfinies pour des cas courants
+    if any(greeting in query_lower for greeting in ["bonjour", "salut", "hello", "hi", "bonsoir"]):
+        return "Bonjour ! Je suis votre assistant virtuel de la Banque Populaire. Je peux vous aider à analyser vos données bancaires, répondre à vos questions sur les comptes et les opérations. Comment puis-je vous assister aujourd'hui ?"
+    
+    if any(role in query_lower for role in ["rôle", "qui êtes-vous", "qui es-tu", "que faites-vous"]):
+        return "Je suis l'assistant virtuel de la Banque Populaire, spécialisé dans l'analyse de données bancaires. Je peux vous aider à :\n\n• Analyser vos fichiers de données\n• Comprendre les structures de comptes\n• Interpréter les flux financiers\n• Répondre aux questions sur les opérations bancaires\n\nPosez-moi une question spécifique sur vos données !"
+    
+    if any(help_term in query_lower for help_term in ["comment m'aider", "que puis-je demander", "capacités"]):
+        return "Je peux vous assister sur plusieurs aspects :\n\n• **Analyse de fichiers** : Téléversez vos données Excel/CSV\n• **Questions techniques** : Formats, champs, structures\n• **Interprétation** : Flux, comptes, opérations\n• **Aide métier** : Processus bancaires, terminologie\n\nCommencez par me poser une question ou téléverser un fichier à analyser !"
+    
+    if any(thanks in query_lower for thanks in ["merci", "thank you"]):
+        return "Je vous en prie ! N'hésitez pas si vous avez d'autres questions sur vos données bancaires."
+    
+    if any(goodbye in query_lower for goodbye in ["au revoir", "goodbye", "bye"]):
+        return "Au revoir ! À bientôt pour vos prochaines analyses de données."
+    
+    # Pour les autres questions générales, utiliser le LLM avec un prompt simple
+    simple_prompt = f"""Tu es l'assistant virtuel de la Banque Populaire. Réponds de manière professionnelle et concise à cette question générale (sans données spécifiques) : {query}
+
+Garde un ton professionnel et oriente vers les services d'analyse de données si pertinent."""
+    
+    try:
+        response = await ollama_client.chat(
+            model=settings.OLLAMA_MODEL_NAME,
+            messages=[{'role': 'user', 'content': simple_prompt}]
+        )
+        if response and 'message' in response and 'content' in response['message']:
+            return response['message']['content'].strip()
+        else:
+            return "Je suis là pour vous aider avec vos questions bancaires. Pouvez-vous reformuler votre demande ?"
+    except Exception as e:
+        logger.error(f"Error generating general response: {e}")
+        return "Je suis votre assistant Banque Populaire. Comment puis-je vous aider avec vos données bancaires ?"

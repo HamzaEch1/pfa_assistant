@@ -6,7 +6,7 @@ import datetime
 
 # --- Feedback Schema ---
 class FeedbackData(BaseModel):
-    rating: Literal["up", "down"]
+    rating: Optional[Literal["up", "down"]] = None  # TEMP: Allow null to fix corrupted conversations
     comment: Optional[str] = None
 
 # --- End Feedback Schema ---

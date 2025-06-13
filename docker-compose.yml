@@ -58,12 +58,14 @@ services:
       QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-banque_ma_data_catalog}
       OLLAMA_HOST: http://host.docker.internal:11434
       OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-llama3:8b}
-      OLLAMA_CLIENT_TIMEOUT: "30000"
+      OLLAMA_CLIENT_TIMEOUT: "1800"
       EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-paraphrase-multilingual-MiniLM-L12-v2}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY?err}
       NUM_RESULTS_TO_RETRIEVE: ${NUM_RESULTS_TO_RETRIEVE:-28}
       USER_FILES_DIR: /app/user_files
-      QDRANT_CLIENT_TIMEOUT: "300"
+      QDRANT_CLIENT_TIMEOUT: "1800"
+      MAX_CONTENT_LENGTH: "104857600"
+      REQUEST_TIMEOUT: "1800"
       VAULT_ADDR: http://vault:8200
       VAULT_ENABLED: "true"
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID:-myroot}
@@ -255,9 +257,15 @@ services:
 
   # Metricbeat Service
   metricbeat:
-    image: docker.elastic.co/beats/metricbeat:8.12.1
+    build:
+      context: .
+      dockerfile: Dockerfile.metricbeat
     container_name: metricbeat
     user: root
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_HOSTS=http://kibana:5601
+      - XPACK_MONITORING_ENABLED=true
     command:
       - -e
       - --strict.perms=false
@@ -266,11 +274,12 @@ services:
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
       - /proc:/hostfs/proc:ro
       - /:/hostfs:ro
-      - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
     networks:
       - rag_network
     depends_on:
       elasticsearch:
+        condition: service_healthy
+      kibana:
         condition: service_healthy
     deploy:
       resources:
@@ -278,6 +287,28 @@ services:
           memory: 256m
         reservations:
           memory: 128m
+    restart: unless-stopped
+
+  # Service d'initialisation des dataviews
+  dataview-init:
+    image: curlimages/curl:latest
+    container_name: dataview_init
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - KIBANA_URL=http://kibana:5601
+    volumes:
+      - ./elasticsearch/init-dataviews.sh:/init-dataviews.sh:ro
+    command: ["/bin/sh", "/init-dataviews.sh"]
+    networks:
+      - rag_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+      metricbeat:
+        condition: service_started
+    restart: "no"
 
 volumes:
   qdrant_data:
