@@ -887,15 +887,6 @@ function ChatPage() {
     }
   };
 
-  // Cancel any ongoing speech when component unmounts
-  useEffect(() => {
-    return () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
   return (
     <div className="flex h-screen bg-bp-gray-light overflow-hidden">
       <Joyride
@@ -1613,7 +1604,6 @@ function ChatPage() {
             )}
           </form>
         </div>
-      </div>
 
       <button 
         onClick={() => {
@@ -1635,7 +1625,8 @@ function ChatPage() {
         </div>
       </button>
     </div>
-  );
+  </div>
+);
 }
 
 export default ChatPage;

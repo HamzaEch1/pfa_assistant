@@ -1,0 +1,82 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\geometry{margin=2.5cm}
+
+\title{Conception de l'intégration d'un Avatar 3D interactif\\
+pour l'Assistant de Catalogue de Données}
+\author{Ton Nom}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Contexte}
+L’assistant de catalogue de données existant propose une interface chatbot textuelle pour interagir avec les utilisateurs. Afin d’améliorer l’expérience utilisateur et de rendre les interactions plus naturelles et immersives, il est envisagé d’intégrer un avatar 3D interactif capable de dialoguer de manière fluide et humaine, en comprenant la voix de l’utilisateur et en répondant oralement.
+
+\section{Objectifs}
+\begin{itemize}
+    \item Remplacer l’interface chatbot textuelle par un avatar 3D animé.
+    \item Permettre à l’utilisateur de poser des questions à l’oral (reconnaissance vocale).
+    \item Générer des réponses vocales synchronisées avec l’animation de l’avatar (synthèse vocale et lipsync).
+    \item Améliorer l’immersion et l’accessibilité de l’assistant.
+\end{itemize}
+
+\section{Contraintes}
+\begin{itemize}
+    \item Compatibilité web (navigateurs modernes).
+    \item Temps de réponse rapide pour la reconnaissance et la synthèse vocale.
+    \item Respect de la vie privée (gestion des données vocales).
+    \item Intégration fluide avec le backend existant.
+    \item Accessibilité pour les utilisateurs ne pouvant pas utiliser la voix.
+\end{itemize}
+
+\section{Architecture Générale}
+
+\begin{center}
+\includegraphics[width=0.9\textwidth]{architecture_avatar3d.png}
+\end{center}
+
+\textbf{Légende:}
+\begin{itemize}
+    \item \textbf{Frontend}: Avatar 3D, reconnaissance vocale, synthèse vocale, synchronisation animation.
+    \item \textbf{Backend}: Traitement des requêtes, génération de réponses, gestion du contexte.
+\end{itemize}
+
+\section{Diagramme de Séquence}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm, every node/.style={font=\small}]
+    \node (user) {Utilisateur};
+    \node[right=3cm of user] (frontend) {Frontend (Avatar 3D)};
+    \node[right=3cm of frontend] (backend) {Backend (Chatbot)};
+    \draw[->] (user) -- node[above]{Parle} (frontend);
+    \draw[->] (frontend) -- node[above]{Reconnaissance vocale} (frontend);
+    \draw[->] (frontend) -- node[above]{Envoi texte} (backend);
+    \draw[->] (backend) -- node[above]{Réponse texte} (frontend);
+    \draw[->] (frontend) -- node[above]{Synthèse vocale + animation} (frontend);
+    \draw[->] (frontend) -- node[above]{Réponse orale + animation} (user);
+\end{tikzpicture}
+\end{center}
+
+\section{Nouveaux Outils et Technologies Utilisés}
+\begin{itemize}
+    \item \textbf{Three.js} ou \textbf{Babylon.js} : rendu et animation 3D dans le navigateur.
+    \item \textbf{Web Speech API} : reconnaissance vocale et synthèse vocale côté client.
+    \item \textbf{Modèles 3D} : avatars personnalisés (Ready Player Me, Sketchfab, etc.).
+    \item \textbf{Lipsync.js} ou équivalent : synchronisation des mouvements de bouche avec la voix.
+\end{itemize}
+
+\section{Conclusion}
+Cette évolution vise à rendre l’assistant plus humain et accessible, en s’appuyant sur des technologies web modernes et des outils d’animation 3D. L’intégration de la voix et de l’avatar 3D permettra d’offrir une expérience utilisateur innovante et immersive.
+
+\end{document} 
