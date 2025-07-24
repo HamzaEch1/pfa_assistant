@@ -7,7 +7,7 @@ services:
     hostname: zookeeper
     container_name: atlas-zookeeper
     ports:
-      - "2181:2181"
+      - "22181:2181"  # Changed from 2181 to avoid conflict
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -22,12 +22,12 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "19092:9092"  # Changed from 9092 to avoid conflict
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:19092
       KAFKA_METRICS_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -41,15 +41,21 @@ services:
 
   # Elasticsearch for Atlas search
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
     container_name: atlas-elasticsearch
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "cluster.routing.allocation.disk.threshold_enabled=false"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "19200:9200"  # Changed from 9200 to avoid conflict
+      - "19300:9300"  # Changed from 9300 to avoid conflict
     networks:
       - atlas-network
 
