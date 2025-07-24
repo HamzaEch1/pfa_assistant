@@ -23,10 +23,6 @@ function ChatPage() {
   const [isLoading, setIsLoading] = useState(false); // For message sending/loading
   const [error, setError] = useState('');
   const messagesEndRef = useRef(null); // Ref to scroll to bottom
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileUploading, setFileUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState({});
-  const [lastUsedFileId, setLastUsedFileId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // <-- State for sidebar visibility
   const [feedbackState, setFeedbackState] = useState({}); // <-- State for feedback { [msgIndex]: 'up' | 'down' }
   const [currentAbortController, setCurrentAbortController] = useState(null); // <-- State for AbortController
@@ -184,10 +180,6 @@ function ChatPage() {
         content: 'Saisissez vos messages ici pour interagir avec l\'assistant IA.',
       },
       {
-        target: '.file-upload',
-        content: 'Vous pouvez télécharger des fichiers Excel ici pour que l\'IA puisse les analyser.',
-      },
-      {
         target: '.feedback-buttons',
         content: 'Donnez votre avis sur les réponses de l\'IA pour aider à améliorer le système.',
       },
@@ -264,7 +256,6 @@ function ChatPage() {
     const fetchMessages = async () => {
       if (!currentConversationId) {
         setMessages([]); // Clear messages if no conversation selected
-        setLastUsedFileId(null); // Clear last used file
         return;
       }
       setIsLoading(true); // Indicate loading messages
@@ -274,15 +265,15 @@ function ChatPage() {
         setMessages(response.data.messages || []);
         
         // Update uploaded files for this conversation
-        if (response.data.files && response.data.files.length > 0) {
-          const filesMap = {};
-          response.data.files.forEach(file => {
-            filesMap[file.id] = file;
-          });
-          setUploadedFiles(filesMap);
-        } else {
-          setUploadedFiles({});
-        }
+        // if (response.data.files && response.data.files.length > 0) {
+        //   const filesMap = {};
+        //   response.data.files.forEach(file => {
+        //     filesMap[file.id] = file;
+        //   });
+        //   setUploadedFiles(filesMap);
+        // } else {
+        //   setUploadedFiles({});
+        // }
         // Reset feedback states when conversation changes
         setFeedbackState({});
         setDetailedFeedbackOpenFor(null);
@@ -310,7 +301,7 @@ function ChatPage() {
   const selectConversation = (id) => {
     if (id !== currentConversationId) {
         setCurrentConversationId(id);
-        setLastUsedFileId(null); // Reset last used file when switching conversations
+        // setLastUsedFileId(null); // Reset last used file when switching conversations
     }
   };
 
@@ -329,7 +320,7 @@ function ChatPage() {
         setConversations(prev => [newConv, ...prev].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
         setCurrentConversationId(newConv.id);
         setMessages([]);
-        setLastUsedFileId(null);
+        // setLastUsedFileId(null);
         setIsNewConversation(true); // Marquer comme nouvelle conversation
     } catch (err) {
         console.error("Failed to start new conversation:", err);
@@ -359,7 +350,7 @@ function ChatPage() {
               }
               setCurrentConversationId(nextConversationId); // Select next newest or null
               setMessages([]); // Clear messages
-              setLastUsedFileId(null); // Clear last used file
+              // setLastUsedFileId(null); // Clear last used file
           }
       } catch (err) {
           console.error("Failed to delete conversation:", err);
@@ -368,67 +359,67 @@ function ChatPage() {
       }
   };
 
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    } else {
-      setSelectedFile(null);
-    }
-  };
+  // const handleFileChange = (e) => {
+  //   if (e.target.files.length > 0) {
+  //     setSelectedFile(e.target.files[0]);
+  //   } else {
+  //     setSelectedFile(null);
+  //   }
+  // };
 
-  const handleFileUpload = async () => {
-    if (!selectedFile || !currentConversationId || fileUploading) {
-      return;
-    }
+  // const handleFileUpload = async () => {
+  //   if (!selectedFile || !currentConversationId || fileUploading) {
+  //     return;
+  //   }
 
-    // Validate file type
-    if (!selectedFile.name.endsWith('.xlsx')) {
-      setError('Only Excel files (.xlsx) are allowed.');
-      return;
-    }
+  //   // Validate file type
+  //   if (!selectedFile.name.endsWith('.xlsx')) {
+  //     setError('Only Excel files (.xlsx) are allowed.');
+  //     return;
+  //   }
 
-    setFileUploading(true);
-    setError('');
+  //   setFileUploading(true);
+  //   setError('');
 
-    try {
-      const response = await chatService.uploadExcelFile(currentConversationId, selectedFile);
-      const { file_id, filename } = response.data;
+  //   try {
+  //     const response = await chatService.uploadExcelFile(currentConversationId, selectedFile);
+  //     const { file_id, filename } = response.data;
       
-      // Update uploaded files with new file
-      setUploadedFiles(prev => ({
-        ...prev,
-        [file_id]: {
-          id: file_id,
-          filename: filename,
-          upload_date: new Date().toISOString(),
-          user_id: user.user_id,
-          conversation_id: currentConversationId
-        }
-      }));
+  //     // Update uploaded files with new file
+  //     setUploadedFiles(prev => ({
+  //       ...prev,
+  //       [file_id]: {
+  //         id: file_id,
+  //         filename: filename,
+  //         upload_date: new Date().toISOString(),
+  //         user_id: user.user_id,
+  //         conversation_id: currentConversationId
+  //       }
+  //     }));
       
-      setSelectedFile(null);
+  //     setSelectedFile(null);
       
-      // Auto-set as the file to use
-      setLastUsedFileId(file_id);
+  //     // Auto-set as the file to use
+  //     setLastUsedFileId(file_id);
       
-      // Update conversation in list to show it has files
-      const updatedConvResponse = await chatService.getConversation(currentConversationId);
-      setConversations(prevConvos => 
-        prevConvos.map(conv => conv.id === currentConversationId ? updatedConvResponse.data : conv)
-      );
+  //     // Update conversation in list to show it has files
+  //     const updatedConvResponse = await chatService.getConversation(currentConversationId);
+  //     setConversations(prevConvos => 
+  //       prevConvos.map(conv => conv.id === currentConversationId ? updatedConvResponse.data : conv)
+  //     );
       
-    } catch (err) {
-      console.error("Failed to upload file:", err);
-      setError('Failed to upload file. Please try again.');
-      if (err.response?.status === 401) logout();
-    } finally {
-      setFileUploading(false);
-    }
-  };
+  //   } catch (err) {
+  //     console.error("Failed to upload file:", err);
+  //     setError('Failed to upload file. Please try again.');
+  //     if (err.response?.status === 401) logout();
+  //   } finally {
+  //     setFileUploading(false);
+  //   }
+  // };
 
-  const handleSelectFile = (fileId) => {
-    setLastUsedFileId(fileId === lastUsedFileId ? null : fileId);
-  };
+  // const handleSelectFile = (fileId) => {
+  //   setLastUsedFileId(fileId === lastUsedFileId ? null : fileId);
+  // };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -440,7 +431,7 @@ function ChatPage() {
     const controller = new AbortController();
     setCurrentAbortController(controller);
 
-    const userMessage = { role: 'user', content: newMessage, file_id: lastUsedFileId };
+    const userMessage = { role: 'user', content: newMessage };
     setMessages(prev => [...prev, userMessage]);
     const currentInput = newMessage;
     setNewMessage('');
@@ -451,8 +442,7 @@ function ChatPage() {
     try {
         const response = await chatService.sendMessage({
             prompt: userMessage.content,
-            conversation_id: currentConversationId,
-            file_id: lastUsedFileId
+            conversation_id: currentConversationId
         }, controller.signal);
 
         const assistantMessage = response.data.assistant_message;
@@ -484,7 +474,7 @@ function ChatPage() {
     }
 };
 
-  const handleResendMessage = async (contentToResend, fileIdToResend) => {
+  const handleResendMessage = async (contentToResend) => {
     if (!contentToResend.trim() || isLoading || !currentConversationId) return;
 
     // Si une requête est déjà en cours et qu'un AbortController existe, l'annuler avant d'en envoyer une nouvelle.
@@ -494,7 +484,7 @@ function ChatPage() {
     const controller = new AbortController();
     setCurrentAbortController(controller);
 
-    const userMessage = { role: 'user', content: contentToResend, file_id: fileIdToResend };
+    const userMessage = { role: 'user', content: contentToResend };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setError('');
@@ -502,8 +492,7 @@ function ChatPage() {
     try {
       const response = await chatService.sendMessage({
         prompt: userMessage.content,
-        conversation_id: currentConversationId,
-        file_id: userMessage.file_id 
+        conversation_id: currentConversationId
       }, controller.signal); // Passer le signal
 
       const assistantMessage = response.data.assistant_message;
@@ -935,9 +924,9 @@ function ChatPage() {
               >
                 <span className="truncate flex-grow mr-2">
                   {conv.title || `Chat ${conv.id.substring(0, 6)}`}
-                  {conv.files && conv.files.length > 0 && (
+                  {/* {conv.files && conv.files.length > 0 && (
                     <span className="ml-1 text-xs">📎{conv.files.length}</span>
-                  )}
+                  )} */}
                 </span>
                 <button
                       onClick={(e) => handleDeleteConversation(conv.id, e)}
@@ -1003,7 +992,7 @@ function ChatPage() {
         </button>
 
         <div className="flex-grow overflow-y-auto p-4 pb-0 pt-16 flex flex-col">
-          {Object.keys(uploadedFiles).length > 0 && (
+          {/* {Object.keys(uploadedFiles).length > 0 && (
             <div className="mb-4 p-2 rounded bg-bp-sidebar-hover text-bp-white text-sm">
               <h3 className="text-xs font-semibold mb-1">Fichiers téléchargés:</h3>
               <div className="flex flex-wrap">
@@ -1028,7 +1017,7 @@ function ChatPage() {
                 </p>
               )}
             </div>
-          )}
+          )} */}
 
           {messages.map((msg, index) => {
             return (
@@ -1049,17 +1038,17 @@ function ChatPage() {
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(msg.content || '') }}
                     />
                   )}
-                  {msg.file_id && uploadedFiles[msg.file_id] && (
+                  {/* {msg.file_id && uploadedFiles[msg.file_id] && (
                     <div className="mt-1 text-xs opacity-70 flex items-center">
                       <span className="mr-1">📊</span>
                       Referenced: {uploadedFiles[msg.file_id].filename}
                     </div>
-                  )}
+                  )} */}
                 </div>
                 {msg.role === 'user' && (
                   <div className="mt-1 self-end flex items-center space-x-2"> 
                     <button
-                      onClick={() => handleResendMessage(msg.content, msg.file_id)}
+                      onClick={() => handleResendMessage(msg.content)}
                       className="text-base text-gray-700 hover:text-bp-orange bg-white border border-gray-300 rounded p-1 shadow-sm hover:bg-gray-50 transition-colors focus:outline-none"
                       title="Relancer cette requête"
                       disabled={isLoading}
@@ -1515,95 +1504,34 @@ function ChatPage() {
           </div>
         )}
 
+        {/* Message Input */}
         {currentConversationId && (
-          <div className="px-4 pt-2 pb-1 bg-bp-gray-light flex flex-wrap items-center file-upload">
-            <input 
-              type="file" 
-              id="file-upload" 
-              className="hidden"
-              onChange={handleFileChange}
-              accept=".xlsx"
-            />
-            <label 
-              htmlFor="file-upload"
-              className="cursor-pointer text-sm text-bp-orange hover:text-bp-orange-bright mr-2 flex items-center"
-            >
-              <span className="mr-1">📎</span>
-              {selectedFile ? selectedFile.name : "Joindre Excel"}
-            </label>
-            
-            {selectedFile && (
-              <button
-                onClick={handleFileUpload}
-                disabled={fileUploading}
-                className={`text-xs px-2 py-1 rounded ${
-                  fileUploading 
-                    ? 'bg-gray-400 text-gray-700' 
-                    : 'bg-bp-orange hover:bg-bp-orange-bright text-white'
-                }`}
+          <div className="px-4 py-2 bg-bp-gray-light">
+            <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+              <input 
+                type="text" 
+                value={newMessage} 
+                onChange={(e) => setNewMessage(e.target.value)} 
+                placeholder={currentConversationId ? "Écrivez un message..." : "Sélectionnez une conversation pour commencer"} 
+                className="flex-1 border border-bp-gray rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bp-orange resize-none message-input"
+                disabled={!currentConversationId || isLoading}
+                maxLength="2000"
+              />
+              <button 
+                type="submit" 
+                disabled={!newMessage.trim() || !currentConversationId || isLoading}
+                className="bg-bp-orange hover:bg-bp-orange-bright text-bp-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                aria-label="Envoyer le message"
+                title={newMessage.trim() ? "Envoyer le message (Ctrl+Entrée)" : "Tapez un message pour l'envoyer"}
               >
-                {fileUploading ? 'Téléchargement...' : 'Télécharger'}
+                {isLoading ? '...' : 'Envoyer'}
               </button>
-            )}
-            
-            {lastUsedFileId && (
-              <div className="ml-auto text-xs text-bp-orange-bright flex items-center">
-                <span className="mr-1">📊</span>
-                Using: {uploadedFiles[lastUsedFileId]?.filename}
-                <button 
-                  onClick={() => setLastUsedFileId(null)}
-                  className="ml-1 text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
+            </form>
+            <div className="text-center mt-1">
+              <span className="text-xs text-bp-gray-dark">💡 <strong>Ctrl+Entrée</strong> envoyer</span>
+            </div>
           </div>
         )}
-
-        <div className="p-4 pt-2 bg-bp-gray-light border-t border-bp-sidebar-bg">
-          <form onSubmit={handleSendMessage} className="flex items-center">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Écrivez un message..."
-              className="flex-grow mr-2 p-2 rounded border focus:outline-none focus:ring-2 focus:ring-bp-orange message-input"
-              disabled={isLoading || !currentConversationId}
-            />
-            {isLoading && currentAbortController ? (
-              <button
-                type="button"
-                onClick={() => {
-                  console.log("Attempting to stop. Controller:", currentAbortController);
-                  if (currentAbortController) {
-                    currentAbortController.abort();
-                    console.log("Abort function called.");
-                  } else {
-                    console.error("Stop clicked but no controller available!");
-                  }
-                }}
-                className="p-2 rounded bg-white border border-gray-300 text-red-500 hover:bg-gray-100 shadow-sm hover:shadow transition duration-150 ease-in-out focus:outline-none"
-                aria-label="Stop generating response"
-              >
-                <FiSquare size={22} className="text-red-500" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isLoading || !newMessage.trim() || !currentConversationId}
-                className={`p-2 rounded ${
-                  isLoading || !newMessage.trim() || !currentConversationId
-                    ? 'bg-gray-400 text-gray-700'
-                    : 'bg-bp-orange hover:bg-bp-orange-bright text-white'
-                } transition duration-150 ease-in-out`}
-                aria-label="Send message"
-              >
-                <span className="text-xl">➤</span>
-              </button>
-            )}
-          </form>
-        </div>
 
       <button 
         onClick={() => {

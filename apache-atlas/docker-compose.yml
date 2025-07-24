@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # Zookeeper - Required for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: atlas-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - atlas-network
+
+  # Kafka - Required for Atlas notifications
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: atlas-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_METRICS_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: anonymous
+    networks:
+      - atlas-network
+
+  # Elasticsearch for Atlas search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: atlas-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - atlas-network
+
+  # Apache Atlas
+  atlas:
+    image: sburn/apache-atlas:latest
+    container_name: apache-atlas
+    depends_on:
+      - zookeeper
+      - kafka
+      - elasticsearch
+    ports:
+      - "21000:21000"
+    environment:
+      # Atlas configuration
+      ATLAS_OPTS: "-Xmx1024m -Xms512m"
+      # Kafka configuration
+      ATLAS_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      ATLAS_KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Elasticsearch configuration
+      ATLAS_ELASTICSEARCH_HOSTS: elasticsearch:9200
+      # HBase configuration (embedded)
+      ATLAS_HBASE_MASTER_PORT: 16000
+      ATLAS_HBASE_REGION_PORT: 16020
+      # Authentication (simple mode for demo)
+      ATLAS_AUTH_SIMPLE_ENABLED: "true"
+      ATLAS_AUTH_SIMPLE_USERNAME: admin
+      ATLAS_AUTH_SIMPLE_PASSWORD: admin
+    volumes:
+      - atlas-data:/opt/atlas/data
+      - ./scripts:/opt/atlas/scripts
+      - ./data:/opt/atlas/input-data
+    networks:
+      - atlas-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:21000/api/atlas/admin/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+volumes:
+  atlas-data:
+
+networks:
+  atlas-network:
+    driver: bridge 

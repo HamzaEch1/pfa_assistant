@@ -8,11 +8,6 @@ function AdminCatalogTab() {
     const [isLoadingInfo, setIsLoadingInfo] = useState(false);
     const [infoError, setInfoError] = useState('');
 
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadStatus, setUploadStatus] = useState(''); // '', 'success', 'error'
-    const [uploadMessage, setUploadMessage] = useState('');
-
     const fetchCatalogInfo = async () => {
         setIsLoadingInfo(true);
         setInfoError('');
@@ -31,39 +26,6 @@ function AdminCatalogTab() {
     useEffect(() => {
         fetchCatalogInfo();
     }, []);
-
-    const handleFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
-        setUploadStatus('');
-        setUploadMessage('');
-    };
-
-    const handleUpload = async () => {
-        if (!selectedFile) {
-            setUploadMessage('Please select a file first.');
-            setUploadStatus('error');
-            return;
-        }
-
-        setIsUploading(true);
-        setUploadStatus('');
-        setUploadMessage('Uploading and starting background processing...');
-
-        try {
-            const response = await adminService.uploadCatalogFile(selectedFile);
-            setUploadMessage(response.data.message || 'Upload initiated successfully.');
-            setUploadStatus('success');
-            setSelectedFile(null); // Clear file input after success
-            // Optionally refresh catalog info after a delay
-            setTimeout(fetchCatalogInfo, 5000); // Refresh info after 5s
-        } catch (error) {
-            console.error("Upload failed:", error);
-            setUploadMessage(error.response?.data?.detail || 'Upload failed.');
-            setUploadStatus('error');
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     return (
         <div>
@@ -90,32 +52,6 @@ function AdminCatalogTab() {
                         <p><strong className="text-bp-brown">Dimension:</strong> {catalogInfo.vectors_dimension ?? 'N/A'}</p>
                     </div>
                 )}
-            </div>
-
-            {/* Upload Section */}
-            <div className="mb-6">
-                 <h3 className="text-lg font-medium text-bp-brown mb-2">Ajouter des données depuis Excel</h3>
-                 <div className="flex items-center space-x-4">
-                     <input
-                         type="file"
-                         accept=".xlsx"
-                         onChange={handleFileChange}
-                         className="block w-full text-sm text-bp-gray-dark file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-bp-orange-tint file:text-bp-orange hover:file:bg-bp-orange/20"
-                         disabled={isUploading}
-                     />
-                    <button
-                        onClick={handleUpload}
-                        disabled={!selectedFile || isUploading}
-                        className="bg-bp-orange-bright hover:bg-bp-orange text-bp-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                        {isUploading ? 'Traitement...' : ' Ajouter '}
-                    </button>
-                 </div>
-                 {uploadMessage && (
-                     <p className={`mt-2 text-sm ${uploadStatus === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                         {uploadMessage}
-                     </p>
-                 )}
             </div>
         </div>
     );

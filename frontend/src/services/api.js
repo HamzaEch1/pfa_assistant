@@ -127,15 +127,6 @@ export const chatService = {
   deleteMessage: (conversationId, messageId) => {
     return apiClient.delete(`/api/v1/chat/conversations/${conversationId}/messages/${messageId}`);
   },
-  uploadExcelFile: (conversationId, file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return apiClient.post(`/api/v1/chat/conversations/${conversationId}/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
   getFileContext: (fileId) => {
     return apiClient.get(`/api/v1/chat/file-context/${fileId}`);
   },
@@ -168,29 +159,9 @@ export const adminService = {
   getFeedback: () => {
     return apiClient.get('/api/v1/admin/feedback');
   },
-  clearFeedback: (conversationId, messageIndex) => {
-    return apiClient.delete(`/api/v1/admin/feedback/${conversationId}/${messageIndex}`);
-  },
   // Catalog
   getCatalogInfo: () => {
     return apiClient.get('/api/v1/admin/catalog/info');
-  },
-  uploadCatalogFile: (file) => {
-    const formData = new FormData();
-    formData.append('file', file); // 'file' must match the parameter name in FastAPI endpoint
-    return apiClient.post('/api/v1/admin/catalog/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      // Optional: Add progress tracking here if needed
-    });
-  },
-  // Config
-  getAdminConfig: () => {
-     return apiClient.get('/api/v1/admin/config');
-  },
-  updateAdminEmail: (newEmail) => {
-     return apiClient.put('/api/v1/admin/config/admin-email', { new_email: newEmail });
   }
   // Add other admin endpoints here...
 };

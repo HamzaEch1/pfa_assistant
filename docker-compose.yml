@@ -74,7 +74,7 @@ services:
     volumes:
       - ./api:/app/api
       - type: bind
-        source: C:/Users/Khadija/.cache/huggingface/hub
+        source: ~/.cache/huggingface/hub
         target: /root/.cache/huggingface/hub
         read_only: true
     depends_on:

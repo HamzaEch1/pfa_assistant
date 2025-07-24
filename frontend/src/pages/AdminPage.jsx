@@ -4,19 +4,18 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext'; // Correct path: Go up one level then into contexts
 // --- END CORRECTION ---
 import { useNavigate } from 'react-router-dom';
-import { FiBookOpen, FiUsers, FiMessageSquare, FiSettings } from 'react-icons/fi';
+import { FiBookOpen, FiUsers, FiMessageSquare } from 'react-icons/fi';
 
 // Import Tab Components
 import AdminCatalogTab from '../components/AdminCatalogTab';
 import AdminUserTab from '../components/AdminUserTab';
 import AdminFeedbackTab from '../components/AdminFeedbackTab';
-import AdminConfigTab from '../components/AdminConfigTab';
 
 
 function AdminPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog', 'users', 'feedback', 'config'
+  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog', 'users', 'feedback'
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -26,8 +25,6 @@ function AdminPage() {
         return <AdminUserTab />;
       case 'feedback':
         return <AdminFeedbackTab />;
-      case 'config':
-         return <AdminConfigTab />;
       default:
         return <AdminCatalogTab />;
     }
@@ -74,9 +71,6 @@ function AdminPage() {
              </button>
              <button onClick={() => setActiveTab('feedback')} className={getTabClass('feedback')}>
                  <FiMessageSquare className="inline mr-2 mb-1" /> Feedbacks
-             </button>
-              <button onClick={() => setActiveTab('config')} className={getTabClass('config')}>
-                 <FiSettings className="inline mr-2 mb-1" /> Configuration
              </button>
          </nav>
        </div>

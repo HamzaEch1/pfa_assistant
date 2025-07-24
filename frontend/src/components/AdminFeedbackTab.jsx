@@ -8,13 +8,11 @@ function AdminFeedbackTab() {
     const [feedback, setFeedback] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [actionStatus, setActionStatus] = useState({}); // To show status per feedback item
     const [showStats, setShowStats] = useState(false);
 
     const fetchFeedback = useCallback(async () => {
         setIsLoading(true);
         setError('');
-        setActionStatus({});
         try {
             const response = await adminService.getFeedback();
             // Map field names if aliases didn't work perfectly or for display consistency
@@ -44,24 +42,6 @@ function AdminFeedbackTab() {
     useEffect(() => {
         fetchFeedback();
     }, [fetchFeedback]);
-
-    const handleClearFeedback = async (convId, msgIndex) => {
-         const key = `${convId}-${msgIndex}`;
-         if (!window.confirm(`Are you sure you want to clear feedback for message ${msgIndex} in conversation ${convId}?`)) {
-            return;
-         }
-
-        setActionStatus(prev => ({ ...prev, [key]: { loading: true } }));
-        try {
-            await adminService.clearFeedback(convId, msgIndex);
-            setActionStatus(prev => ({ ...prev, [key]: { success: 'Cleared!' } }));
-            // Refresh feedback list after clearing
-            fetchFeedback();
-        } catch (error) {
-            console.error(`Failed to clear feedback for ${key}:`, error);
-            setActionStatus(prev => ({ ...prev, [key]: { error: error.response?.data?.detail || 'Clear failed.' } }));
-        }
-    };
 
     const toggleStats = () => {
         setShowStats(!showStats);
@@ -107,14 +87,12 @@ function AdminFeedbackTab() {
                                 <th className="px-4 py-3 text-left text-xs font-medium text-bp-brown uppercase tracking-wider">Détails</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-bp-brown uppercase tracking-wider">Question</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-bp-brown uppercase tracking-wider">Réponse Assistant</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-bp-brown uppercase tracking-wider">Action</th>
                              </tr>
                          </thead>
                          <tbody className="bg-bp-white divide-y divide-bp-gray">
                             {feedback.map((item, index) => {
-                                const actionKey = `${item.original_conv_id}-${item.original_msg_idx}`;
                                 return (
-                                <tr key={actionKey} className="hover:bg-bp-gray-light/50">
+                                <tr key={`${item.original_conv_id}-${item.original_msg_idx}`} className="hover:bg-bp-gray-light/50">
                                      <td className="px-4 py-4 whitespace-nowrap text-sm text-bp-gray-dark">{item.user}</td>
                                      <td className="px-4 py-4 whitespace-nowrap text-sm text-bp-gray-dark">{new Date(item.conversationDate).toLocaleString()}</td>
                                      <td className="px-4 py-4 whitespace-nowrap text-sm">
@@ -139,18 +117,6 @@ function AdminFeedbackTab() {
                                                 ? `${item.assistantMessage.slice(0, 60)}...` 
                                                 : item.assistantMessage 
                                          }} />
-                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                         <button
-                                             onClick={() => handleClearFeedback(item.original_conv_id, item.original_msg_idx)}
-                                             disabled={actionStatus[actionKey]?.loading}
-                                             className="text-xs bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-2 rounded disabled:opacity-50"
-                                             title="Effacer le feedback (ne supprime pas le message)"
-                                         >
-                                            {actionStatus[actionKey]?.loading ? '...' : 'Effacer Feedback'}
-                                         </button>
-                                          {actionStatus[actionKey]?.error && <p className="text-red-500 text-xs mt-1">{actionStatus[actionKey].error}</p>}
-                                          {actionStatus[actionKey]?.success && <p className="text-green-500 text-xs mt-1">{actionStatus[actionKey].success}</p>}
                                      </td>
                                  </tr>
                              );
