@@ -1,7 +1,7 @@
 // src/pages/ChatPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { chatService } from '../services/api';
+import { chatService, voiceService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Importer axios pour isCancel
 import { FiRefreshCcw, FiSquare, FiTrash2, FiThumbsUp, FiThumbsDown, FiCopy, FiHelpCircle, FiBarChart2, FiVolume2 } from "react-icons/fi"; // Import de l'icône de relance, FiSquare et FiTrash2, FiThumbsUp, FiThumbsDown, FiCopy, FiHelpCircle, FiBarChart2, FiVolume2
@@ -9,6 +9,7 @@ import DOMPurify from 'dompurify'; // Import DOMPurify pour la sanitisation HTML
 import Joyride, { STATUS } from 'react-joyride';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
+import VoiceRecorder from '../components/VoiceRecorder';
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
@@ -55,6 +56,10 @@ function ChatPage() {
   const [voices, setVoices] = useState([]);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
   const [useTextToSpeechAPI, setUseTextToSpeechAPI] = useState(true);
+
+  // Voice recording state
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [isVoiceProcessing, setIsVoiceProcessing] = useState(false);
 
   const PREDEFINED_FEEDBACK_PROBLEMS = [
     "Information incorrecte",
@@ -474,6 +479,72 @@ function ChatPage() {
     }
 };
 
+  // Handle voice message
+  const handleVoiceMessage = async (formData) => {
+    if (!currentConversationId || isVoiceProcessing) return;
+
+    setIsVoiceProcessing(true);
+    setError('');
+
+    try {
+      console.log('Processing voice message...');
+      
+      // Send voice message for complete processing (transcription + RAG)
+      const response = await voiceService.voiceConversation(
+        formData.get('audio_file'), 
+        currentConversationId, 
+        formData.get('language') || 'en'
+      );
+
+      if (response.data.success) {
+        // Add user message (transcribed text)
+        const userMessage = { 
+          role: 'user', 
+          content: response.data.user_message,
+          isVoiceMessage: true 
+        };
+        
+        // Add assistant response
+        const assistantMessage = { 
+          role: 'assistant', 
+          content: response.data.assistant_response,
+          isVoiceResponse: true 
+        };
+
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
+
+        // Update conversation list
+        try {
+          const updatedConvResponse = await chatService.getConversation(currentConversationId);
+          const updatedConvData = updatedConvResponse.data;
+          if (updatedConvData) {
+            setConversations(prevConvos => prevConvos.map(conv =>
+              conv.id === currentConversationId ? updatedConvData : conv
+            ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+          }
+        } catch (updateErr) {
+          console.warn('Failed to update conversation list:', updateErr);
+        }
+
+        // Close voice recorder on success
+        setShowVoiceRecorder(false);
+        console.log('Voice message processed successfully!');
+      } else {
+        throw new Error('Voice processing failed');
+      }
+    } catch (err) {
+      console.error("Failed to process voice message:", err);
+      setError('Failed to process voice message. Please try again.');
+      
+      if (err.response?.status === 401) {
+        logout();
+      }
+    } finally {
+      setIsVoiceProcessing(false);
+      setTimeout(scrollToBottom, 50);
+    }
+  };
+
   const handleResendMessage = async (contentToResend) => {
     if (!contentToResend.trim() || isLoading || !currentConversationId) return;
 
@@ -695,8 +766,8 @@ function ChatPage() {
       console.log("SpeechSynthesis not available, trying fallback");
       const success = await useTextToSpeechFallback(textContent);
       if (!success) {
-        setSpeakingMessageIndex(null);
         setError("La synthèse vocale n'est pas disponible sur ce navigateur.");
+        setSpeakingMessageIndex(null);
       }
       return;
     }
@@ -1507,29 +1578,77 @@ function ChatPage() {
         {/* Message Input */}
         {currentConversationId && (
           <div className="px-4 py-2 bg-bp-gray-light">
-            <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
-              <input 
-                type="text" 
-                value={newMessage} 
-                onChange={(e) => setNewMessage(e.target.value)} 
-                placeholder={currentConversationId ? "Écrivez un message..." : "Sélectionnez une conversation pour commencer"} 
-                className="flex-1 border border-bp-gray rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bp-orange resize-none message-input"
-                disabled={!currentConversationId || isLoading}
-                maxLength="2000"
-              />
-              <button 
-                type="submit" 
-                disabled={!newMessage.trim() || !currentConversationId || isLoading}
-                className="bg-bp-orange hover:bg-bp-orange-bright text-bp-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
-                aria-label="Envoyer le message"
-                title={newMessage.trim() ? "Envoyer le message (Ctrl+Entrée)" : "Tapez un message pour l'envoyer"}
-              >
-                {isLoading ? '...' : 'Envoyer'}
-              </button>
-            </form>
-            <div className="text-center mt-1">
-              <span className="text-xs text-bp-gray-dark">💡 <strong>Ctrl+Entrée</strong> envoyer</span>
-            </div>
+            {!showVoiceRecorder ? (
+              <>
+                <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                  <input 
+                    type="text" 
+                    value={newMessage} 
+                    onChange={(e) => setNewMessage(e.target.value)} 
+                    placeholder={currentConversationId ? "Écrivez un message..." : "Sélectionnez une conversation pour commencer"} 
+                    className="flex-1 border border-bp-gray rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bp-orange resize-none message-input"
+                    disabled={!currentConversationId || isLoading || isVoiceProcessing}
+                    maxLength="2000"
+                  />
+                  
+                  {/* Voice Recording Button */}
+                  <button 
+                    type="button"
+                    onClick={() => setShowVoiceRecorder(true)}
+                    disabled={!currentConversationId || isLoading || isVoiceProcessing}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    aria-label="Enregistrer un message vocal"
+                    title="Enregistrer un message vocal"
+                  >
+                    🎤
+                  </button>
+                  
+                  <button 
+                    type="submit" 
+                    disabled={!newMessage.trim() || !currentConversationId || isLoading || isVoiceProcessing}
+                    className="bg-bp-orange hover:bg-bp-orange-bright text-bp-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    aria-label="Envoyer le message"
+                    title={newMessage.trim() ? "Envoyer le message (Ctrl+Entrée)" : "Tapez un message pour l'envoyer"}
+                  >
+                    {isLoading ? '...' : 'Envoyer'}
+                  </button>
+                </form>
+                <div className="text-center mt-1">
+                  <span className="text-xs text-bp-gray-dark">
+                    💡 <strong>Ctrl+Entrée</strong> envoyer | 🎤 <strong>Clic</strong> message vocal
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Voice Recorder Component */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-gray-700">🎤 Enregistrement vocal</h3>
+                    <button
+                      onClick={() => setShowVoiceRecorder(false)}
+                      className="text-gray-500 hover:text-gray-700 text-sm"
+                    >
+                      ✕ Annuler
+                    </button>
+                  </div>
+                  <VoiceRecorder
+                    onSendAudio={handleVoiceMessage}
+                    disabled={isVoiceProcessing}
+                    language="fr"
+                    maxDuration={180} // 3 minutes
+                  />
+                  {isVoiceProcessing && (
+                    <div className="mt-2 text-center">
+                      <div className="inline-flex items-center space-x-2 text-blue-600">
+                        <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                        <span className="text-sm">Traitement du message vocal...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
 

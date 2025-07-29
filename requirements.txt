@@ -24,6 +24,15 @@ torch
 torchvision
 torchaudio
 
+# --- Voice Processing Dependencies ---
+openai-whisper    # Speech recognition
+tiktoken          # Tokenizer for Whisper
+numba             # Whisper dependency
+more-itertools    # Whisper dependency
+pydub             # Audio processing
+librosa           # Audio analysis
+soundfile         # Audio I/O
+
 # Other dependencies
 streamlit
 psycopg2-binary

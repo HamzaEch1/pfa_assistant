@@ -166,4 +166,48 @@ export const adminService = {
   // Add other admin endpoints here...
 };
 
+// Voice service functions
+export const voiceService = {
+  // Get voice capabilities info
+  getVoiceInfo: () => {
+    return apiClient.get('/api/v1/chat/voice/info');
+  },
+  
+  // Get supported languages
+  getSupportedLanguages: () => {
+    return apiClient.get('/api/v1/chat/voice/languages');
+  },
+  
+  // Transcribe audio to text
+  transcribeAudio: (audioFile, language = 'en') => {
+    const formData = new FormData();
+    formData.append('audio_file', audioFile);
+    formData.append('language', language);
+    
+    return apiClient.post('/api/v1/chat/voice/transcribe', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 60 seconds for voice processing
+    });
+  },
+  
+  // Complete voice conversation (transcribe + RAG processing)
+  voiceConversation: (audioFile, conversationId = null, language = 'en') => {
+    const formData = new FormData();
+    formData.append('audio_file', audioFile);
+    if (conversationId) {
+      formData.append('conversation_id', conversationId);
+    }
+    formData.append('language', language);
+    
+    return apiClient.post('/api/v1/chat/voice/conversation', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 120000, // 2 minutes for complete voice processing
+    });
+  }
+};
+
 export default apiClient; // Keep default export if needed elsewhere

@@ -482,3 +482,224 @@ async def get_statistics(
     except Exception as e:
         logger.error(f"Error calculating statistics: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =============================================================================
+# VOICE CONVERSATION ENDPOINTS
+# =============================================================================
+
+@router.post("/voice/transcribe")
+async def transcribe_audio(
+    audio_file: UploadFile = File(..., description="Audio file to transcribe"),
+    language: Optional[str] = Form(None, description="Language code (e.g., 'en', 'fr')"),
+    current_user: TokenData = Depends(get_current_user)
+):
+    """
+    Transcribe audio file to text using OpenAI Whisper.
+    
+    Supports multiple audio formats: WAV, MP3, M4A, FLAC, OGG
+    """
+    import tempfile
+    from ..services.voice_service import voice_service
+    
+    # Validate file
+    if not audio_file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    # Check file size (limit to 25MB)
+    max_size = 25 * 1024 * 1024  # 25MB
+    audio_file.file.seek(0, 2)  # Seek to end
+    file_size = audio_file.file.tell()
+    audio_file.file.seek(0)  # Reset to beginning
+    
+    if file_size > max_size:
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size: {max_size // (1024*1024)}MB")
+    
+    # Save uploaded file temporarily
+    suffix = os.path.splitext(audio_file.filename)[1].lower()
+    if suffix not in ['.wav', '.mp3', '.m4a', '.flac', '.ogg', '.webm']:
+        raise HTTPException(status_code=400, detail="Unsupported file format")
+    
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            content = await audio_file.read()
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        
+        # Transcribe audio
+        result = await voice_service.transcribe_audio(temp_file_path, language)
+        
+        logger.info(f"User {current_user.user_id} transcribed audio: {result['text'][:100]}...")
+        
+        return {
+            "success": True,
+            "transcription": result,
+            "file_info": {
+                "filename": audio_file.filename,
+                "size": file_size,
+                "format": suffix
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Transcription failed for user {current_user.user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+    
+    finally:
+        # Clean up temporary file
+        try:
+            if 'temp_file_path' in locals():
+                os.unlink(temp_file_path)
+        except:
+            pass
+
+
+@router.post("/voice/conversation")
+async def voice_conversation(
+    audio_file: UploadFile = File(..., description="Audio file with user's voice message"),
+    conversation_id: Optional[str] = Form(None, description="Conversation ID to continue"),
+    language: Optional[str] = Form(None, description="Language code for transcription"),
+    current_user: TokenData = Depends(get_current_user),
+    embedding_model: SentenceTransformer = Depends(get_embedding_model_dependency),
+    qdrant_client: QdrantClient = Depends(get_qdrant_client_dependency),
+    ollama_client: ollama.Client = Depends(get_ollama_client_dependency)
+):
+    """
+    Complete voice conversation workflow:
+    1. Transcribe audio to text
+    2. Process through RAG system  
+    3. Return both transcription and AI response
+    """
+    import tempfile
+    from ..services.voice_service import voice_service
+    
+    # Validate file
+    if not audio_file.filename:
+        raise HTTPException(status_code=400, detail="No audio file provided")
+    
+    # Check file size (limit to 25MB)
+    max_size = 25 * 1024 * 1024  # 25MB
+    audio_file.file.seek(0, 2)
+    file_size = audio_file.file.tell()
+    audio_file.file.seek(0)
+    
+    if file_size > max_size:
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size: {max_size // (1024*1024)}MB")
+    
+    # Validate file format
+    suffix = os.path.splitext(audio_file.filename)[1].lower()
+    if suffix not in ['.wav', '.mp3', '.m4a', '.flac', '.ogg', '.webm']:
+        raise HTTPException(status_code=400, detail="Unsupported audio format")
+    
+    try:
+        # Save uploaded file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            content = await audio_file.read()
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        
+        # Process complete voice conversation
+        result = await voice_service.process_voice_conversation(
+            audio_file_path=temp_file_path,
+            user_id=current_user.user_id,
+            conversation_id=conversation_id,
+            language=language,
+            embedding_model=embedding_model,
+            qdrant_client=qdrant_client,
+            ollama_client=ollama_client
+        )
+        
+        logger.info(f"Voice conversation completed for user {current_user.user_id}: {result['user_message'][:100]}...")
+        
+        return {
+            "success": True,
+            "user_message": result["user_message"],
+            "assistant_response": result["assistant_response"],
+            "conversation_id": result["conversation_id"],
+            "transcription": result["transcription"],
+            "metadata": result["metadata"],
+            "file_info": {
+                "filename": audio_file.filename,
+                "size": file_size,
+                "format": suffix
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Voice conversation failed for user {current_user.user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Voice conversation failed: {str(e)}")
+    
+    finally:
+        # Clean up temporary file
+        try:
+            if 'temp_file_path' in locals():
+                os.unlink(temp_file_path)
+        except:
+            pass
+
+
+@router.get("/voice/info")
+async def get_voice_info(
+    current_user: TokenData = Depends(get_current_user)
+):
+    """
+    Get information about voice processing capabilities.
+    """
+    from ..services.voice_service import voice_service
+    
+    try:
+        info = voice_service.get_model_info()
+        languages = voice_service.get_supported_languages()
+        
+        return {
+            "voice_processing": info,
+            "supported_languages": languages,
+            "examples": {
+                "language_codes": ["en", "fr", "es", "de", "it", "zh", "ja"],
+                "supported_formats": [".wav", ".mp3", ".m4a", ".flac", ".ogg"],
+                "max_file_size": "25MB",
+                "max_duration": f"{info.get('max_duration', 300)}s"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get voice info: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get voice info: {str(e)}")
+
+
+@router.get("/voice/languages")
+async def get_supported_languages(
+    current_user: TokenData = Depends(get_current_user)
+):
+    """
+    Get list of supported languages for voice transcription.
+    """
+    from ..services.voice_service import voice_service
+    
+    try:
+        languages = voice_service.get_supported_languages()
+        
+        # Group by common languages for better UX
+        common_languages = {
+            "en": "English",
+            "fr": "French", 
+            "es": "Spanish",
+            "de": "German",
+            "it": "Italian",
+            "pt": "Portuguese",
+            "ru": "Russian",
+            "zh": "Chinese",
+            "ja": "Japanese",
+            "ko": "Korean",
+            "ar": "Arabic"
+        }
+        
+        return {
+            "total_languages": len(languages),
+            "common_languages": {k: languages.get(k, v) for k, v in common_languages.items() if k in languages},
+            "all_languages": languages
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get supported languages: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get languages: {str(e)}")
