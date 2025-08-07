@@ -14,6 +14,7 @@ WORKDIR $APP_HOME
 # 4. Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # 5. Create a non-root user
