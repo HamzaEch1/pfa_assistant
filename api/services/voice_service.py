@@ -247,8 +247,18 @@ class VoiceService:
             transcription = await self.transcribe_audio(audio_file_path, language)
             transcribed_text = transcription["text"]
             
+            # Better debugging for empty transcription
+            logger.info(f"Transcription result: '{transcribed_text}' (length: {len(transcribed_text)})")
+            
             if not transcribed_text.strip():
-                raise Exception("No speech detected in audio")
+                # Provide more helpful error message
+                import os
+                file_size = os.path.getsize(audio_file_path) if os.path.exists(audio_file_path) else 0
+                error_msg = f"No speech detected in audio file. File size: {file_size} bytes. " \
+                           f"Please ensure: 1) Microphone is working, 2) Audio contains speech, " \
+                           f"3) Audio is not too quiet, 4) Recording duration is sufficient (>1 second)"
+                logger.warning(error_msg)
+                raise Exception(error_msg)
             
             # Step 2: Process through RAG system
             logger.info("Step 2: Processing through RAG system...")

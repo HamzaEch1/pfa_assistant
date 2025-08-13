@@ -23,6 +23,10 @@ const VoiceRecorder = ({
   const [recordingTime, setRecordingTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [audioLevel, setAudioLevel] = useState(0);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationRef = useRef(null);
   
   const mediaRecorderRef = useRef(null);
   const audioPlayerRef = useRef(null);
@@ -46,37 +50,103 @@ const VoiceRecorder = ({
     try {
       setError(null);
       
-      // Request microphone permission
+      // Log browser and device info
+      console.log('Browser:', navigator.userAgent);
+      console.log('MediaDevices available:', !!navigator.mediaDevices);
+      console.log('getUserMedia available:', !!navigator.mediaDevices?.getUserMedia);
+      
+      // Request microphone permission with Firefox-compatible settings
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 16000
+          // Firefox doesn't support these advanced constraints well
+          // sampleRate: 16000,
+          // channelCount: 1,
+          // volume: 1.0
         } 
       });
       
-      // Check if MediaRecorder is supported
-      if (!MediaRecorder.isTypeSupported('audio/webm')) {
-        throw new Error('Audio recording not supported in this browser');
+      // Log stream info
+      const audioTracks = stream.getAudioTracks();
+      console.log('Audio tracks:', audioTracks.length);
+      if (audioTracks.length > 0) {
+        const track = audioTracks[0];
+        console.log('Track settings:', track.getSettings());
+        console.log('Track capabilities:', track.getCapabilities());
+        
+        // Firefox-specific: check if track is actually enabled
+        console.log('Track enabled:', track.enabled);
+        console.log('Track muted:', track.muted);
+        console.log('Track ready state:', track.readyState);
+        
+        // Firefox: ensure track is enabled
+        if (!track.enabled) {
+          console.log('⚠️ Track was disabled, enabling...');
+          track.enabled = true;
+        }
       }
+      
+      // Check supported MIME types - Firefox priority order
+      const supportedTypes = [
+        'audio/webm;codecs=opus',  // Firefox best support
+        'audio/webm',              // Firefox fallback
+        'audio/ogg;codecs=opus',  // Firefox alternative
+        'audio/ogg',               // Firefox basic
+        'audio/wav',               // Universal fallback
+        'audio/mp4'                // Last resort
+      ];
+      
+      let mimeType = null;
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          console.log(`✅ Supported MIME type found: ${type}`);
+          break;
+        } else {
+          console.log(`❌ MIME type not supported: ${type}`);
+        }
+      }
+      
+      if (!mimeType) {
+        throw new Error('No supported audio format found');
+      }
+      
+      console.log(`🎯 Using MIME type: ${mimeType}`);
       
       audioChunksRef.current = [];
       
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000 // Higher bitrate for better quality
       });
       
       mediaRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
+          console.log(`📦 Audio chunk received: ${event.data.size} bytes`);
           audioChunksRef.current.push(event.data);
+        } else {
+          console.warn('⚠️ Empty audio chunk received');
         }
       };
       
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        console.log(`🎵 Final audio blob created: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+        console.log(`📊 Total chunks: ${audioChunksRef.current.length}`);
+        
+        if (audioBlob.size === 0) {
+          setError('No audio data recorded. Please check your microphone and try again.');
+          return;
+        }
+        
+        if (audioBlob.size < 1000) {
+          console.warn(`⚠️ Very small audio file: ${audioBlob.size} bytes - this might not contain speech`);
+        }
+        
         setAudioBlob(audioBlob);
         
         // Create URL for playback
@@ -90,6 +160,9 @@ const VoiceRecorder = ({
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+      
+      // Start audio level monitoring
+      startAudioLevelMonitoring(stream);
       
       // Start timer
       recordingTimerRef.current = setInterval(() => {
@@ -115,6 +188,9 @@ const VoiceRecorder = ({
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
+      // Stop audio level monitoring
+      stopAudioLevelMonitoring();
+      
       if (recordingTimerRef.current) {
         clearInterval(recordingTimerRef.current);
         recordingTimerRef.current = null;
@@ -135,20 +211,46 @@ const VoiceRecorder = ({
 
   // Send audio for processing
   const sendAudio = async () => {
-    if (!audioBlob) return;
+    if (!audioBlob) {
+      setError('No audio recording available. Please record audio first.');
+      return;
+    }
+    
+    // Minimum size check (at least 1KB)
+    if (audioBlob.size < 1024) {
+      setError('Audio recording too short or empty. Please record again with sound.');
+      return;
+    }
     
     setIsProcessing(true);
     setError(null);
     
     try {
+      console.log(`Sending audio: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+      
       // Create FormData for file upload
       const formData = new FormData();
-      const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+      
+      // Determine file extension based on MIME type
+      let fileName = 'recording.webm';
+      let fileType = audioBlob.type || 'audio/webm';
+      
+      if (fileType.includes('mp4')) {
+        fileName = 'recording.mp4';
+      } else if (fileType.includes('wav')) {
+        fileName = 'recording.wav';
+      } else if (fileType.includes('webm')) {
+        fileName = 'recording.webm';
+      }
+      
+      const audioFile = new File([audioBlob], fileName, { type: fileType });
       formData.append('audio_file', audioFile);
       
       if (language) {
         formData.append('language', language);
       }
+      
+      console.log(`Uploading file: ${fileName} (${audioFile.size} bytes)`);
       
       // Call the parent callback
       if (onSendAudio) {
@@ -194,6 +296,48 @@ const VoiceRecorder = ({
   const handleAudioPlay = () => setIsPlaying(true);
   const handleAudioPause = () => setIsPlaying(false);
   const handleAudioEnded = () => setIsPlaying(false);
+
+  // Monitor audio levels during recording
+  const startAudioLevelMonitoring = (stream) => {
+    try {
+      // Firefox: AudioContext must be created after user gesture
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      } else {
+        audioContextRef.current = new AudioContext();
+      }
+      
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      source.connect(analyserRef.current);
+      
+      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+      
+      const updateLevel = () => {
+        if (analyserRef.current && isRecording) {
+          analyserRef.current.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          setAudioLevel(Math.round(average));
+          animationRef.current = requestAnimationFrame(updateLevel);
+        }
+      };
+      
+      updateLevel();
+    } catch (err) {
+      console.warn('Audio level monitoring failed:', err);
+    }
+  };
+
+  const stopAudioLevelMonitoring = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    setAudioLevel(0);
+  };
 
   return (
     <div className="voice-recorder bg-white rounded-lg border shadow-sm p-4">
@@ -260,6 +404,18 @@ const VoiceRecorder = ({
               {formatTime(recordingTime)}
               {maxDuration && ` / ${formatTime(maxDuration)}`}
             </span>
+            {isRecording && (
+              <div className="flex items-center space-x-1 ml-2">
+                <span className="text-xs">🎵</span>
+                <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 transition-all duration-100 ease-out"
+                    style={{ width: `${Math.min(audioLevel * 2, 100)}%` }}
+                  />
+                </div>
+                <span className="text-xs font-mono w-8">{audioLevel}</span>
+              </div>
+            )}
           </div>
         </div>
         

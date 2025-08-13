@@ -534,7 +534,18 @@ function ChatPage() {
       }
     } catch (err) {
       console.error("Failed to process voice message:", err);
-      setError('Failed to process voice message. Please try again.');
+      
+      // Show more detailed error message
+      let errorMessage = 'Failed to process voice message. Please try again.';
+      
+      if (err.response?.data?.detail) {
+        // Show the actual error from the API
+        errorMessage = `Erreur: ${err.response.data.detail}`;
+      } else if (err.message) {
+        errorMessage = `Erreur: ${err.message}`;
+      }
+      
+      setError(errorMessage);
       
       if (err.response?.status === 401) {
         logout();
