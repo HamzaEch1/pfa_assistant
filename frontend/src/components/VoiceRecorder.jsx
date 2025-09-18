@@ -1,13 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// Simple icon components using emoji/Unicode (replacing lucide-react)
-const MicIcon = () => <span>🎤</span>;
-const MicOffIcon = () => <span>🔇</span>;
-const SquareIcon = () => <span>⏹️</span>;
-const PlayIcon = () => <span>▶️</span>;
-const PauseIcon = () => <span>⏸️</span>;
-const SendIcon = () => <span>📤</span>;
-const VolumeIcon = () => <span>🔊</span>;
+// Modern SVG icon components
+const MicIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+    <line x1="12" x2="12" y1="19" y2="22"/>
+    <line x1="8" x2="16" y1="22" y2="22"/>
+  </svg>
+);
+
+const MicOffIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m2 2 20 20"/>
+    <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/>
+    <path d="M5 10v2a7 7 0 0 0 12 5"/>
+    <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/>
+    <path d="M9 9v3a3 3 0 0 0 5.12 2.12"/>
+    <line x1="12" x2="12" y1="19" y2="22"/>
+    <line x1="8" x2="16" y1="22" y2="22"/>
+  </svg>
+);
+
+const SquareIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <rect x="6" y="6" width="12" height="12" rx="2"/>
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <polygon points="5,3 19,12 5,21"/>
+  </svg>
+);
+
+const PauseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <rect x="6" y="4" width="4" height="16"/>
+    <rect x="14" y="4" width="4" height="16"/>
+  </svg>
+);
+
+const VolumeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/>
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+  </svg>
+);
 
 const VoiceRecorder = ({ 
   onSendAudio, 
@@ -340,7 +380,7 @@ const VoiceRecorder = ({
   };
 
   return (
-    <div className="voice-recorder bg-white rounded-lg border shadow-sm p-4">
+    <div className="voice-recorder voice-interface bg-white rounded-lg border shadow-sm p-4">
       {/* Hidden audio element for playback */}
       <audio
         ref={audioPlayerRef}
@@ -366,10 +406,10 @@ const VoiceRecorder = ({
             <button
               onClick={isRecording ? stopRecording : startRecording}
               disabled={disabled || isProcessing}
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors ${
+              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 shadow-lg hover:shadow-xl ${
                 isRecording
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white disabled:bg-gray-300'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white animate-pulse'
+                  : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white disabled:from-gray-300 disabled:to-gray-400 disabled:transform-none disabled:shadow-none'
               }`}
             >
               {isRecording ? <SquareIcon /> : <MicIcon />}
@@ -382,7 +422,7 @@ const VoiceRecorder = ({
               <button
                 onClick={togglePlayback}
                 disabled={disabled}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500 hover:bg-gray-600 text-white transition-colors"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white transition-all duration-200 ease-in-out transform hover:scale-105 shadow-md hover:shadow-lg"
               >
                 {isPlaying ? <PauseIcon /> : <PlayIcon />}
               </button>
@@ -390,7 +430,7 @@ const VoiceRecorder = ({
               <button
                 onClick={clearRecording}
                 disabled={disabled || isProcessing}
-                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                className="px-3 py-1 text-sm bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-700 rounded-lg transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm hover:shadow-md"
               >
                 Clear
               </button>
@@ -424,18 +464,20 @@ const VoiceRecorder = ({
           <button
             onClick={sendAudio}
             disabled={disabled || isProcessing}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
           >
             {isProcessing ? (
-              <>
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span>Processing...</span>
-              </>
+              </div>
             ) : (
-              <>
-                <SendIcon />
+              <div className="flex items-center space-x-2">
                 <span>Send</span>
-              </>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             )}
           </button>
         )}

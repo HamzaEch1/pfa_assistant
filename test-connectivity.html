@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test de Connectivité</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Test de Connectivité - Système PFE</h1>
+    <div id="results"></div>
+
+    <script>
+        const tests = [
+            { name: 'Frontend Direct', url: 'http://localhost:3000' },
+            { name: 'API FastAPI', url: 'http://localhost:8000' },
+            { name: 'Nginx Proxy', url: 'http://localhost' },
+            { name: 'Whisper Service', url: 'http://localhost:8004' }
+        ];
+
+        const resultsDiv = document.getElementById('results');
+
+        tests.forEach(test => {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            testDiv.innerHTML = `<strong>${test.name}</strong>: Testing ${test.url}...`;
+            resultsDiv.appendChild(testDiv);
+
+            fetch(test.url)
+                .then(response => {
+                    testDiv.className = 'test success';
+                    testDiv.innerHTML = `<strong>${test.name}</strong>: ✅ OK (${response.status})`;
+                })
+                .catch(error => {
+                    testDiv.className = 'test error';
+                    testDiv.innerHTML = `<strong>${test.name}</strong>: ❌ Erreur - ${error.message}`;
+                });
+        });
+    </script>
+</body>
+</html>

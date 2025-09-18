@@ -42,8 +42,26 @@ def _is_general_question(query: str) -> bool:
     """Détecte si une question est générale et n'a pas besoin de contexte RAG."""
     query_lower = query.lower().strip()
     
-    # Questions de salutation
-    greetings = [
+    # D'abord, vérifier si la question contient des termes bancaires spécifiques
+    # Si oui, c'est TOUJOURS une question technique qui doit passer par RAG
+    banking_terms = [
+        "compte", "client", "banque", "agence", "trésorerie", "donnée", "données",
+        "fichier", "sql", "base", "flux", "registre", "limite", "crédit",
+        "carte", "cartes", "bancaire", "bancaires", "chip", "chips", "paiement",
+        "transaction", "opération", "solde", "virement", "depot", "retrait",
+        "rib", "iban", "bic", "swift", "domiciliation", "prelevement",
+        "cheque", "chèque", "espèces", "liquide", "devise", "change",
+        "interet", "intérêt", "taux", "commission", "frais", "agios",
+        "découvert", "crédit", "débit", "encours", "provision",
+        "filiale", "agence", "guichet", "distributeur", "dab", "gab"
+    ]
+    
+    has_banking_terms = any(term in query_lower for term in banking_terms)
+    if has_banking_terms:
+        return False  # Question technique, doit passer par RAG
+    
+    # Questions de salutation SIMPLES (sans contenu technique)
+    simple_greetings = [
         "bonjour", "salut", "hello", "hi", "bonsoir", "bonne journée",
         "comment ça va", "comment allez-vous", "ça va"
     ]
@@ -72,22 +90,28 @@ def _is_general_question(query: str) -> bool:
         "au revoir", "goodbye", "bye", "à bientôt"
     ]
     
-    all_general_patterns = greetings + role_questions + general_questions + thanks + goodbye
+    # Pour les salutations, vérifier que c'est VRAIMENT juste une salutation
+    # et pas une question technique qui commence par "bonjour"
+    for greeting in simple_greetings:
+        if greeting in query_lower:
+            # Vérifier si c'est juste une salutation simple ou si elle contient du contenu technique
+            # Si la question fait plus de 30 caractères et contient "savoir", "question", etc.
+            # c'est probablement une vraie question technique
+            if len(query_lower) > 30 and any(word in query_lower for word in ["savoir", "question", "demande", "veux", "voudrai", "puis-je", "comment", "pourquoi", "quoi", "quel"]):
+                return False  # Question technique déguisée
+            if query_lower.strip() == greeting or len(query_lower.strip()) < 15:
+                return True  # Vraie salutation simple
     
-    # Test direct
-    for pattern in all_general_patterns:
+    # Test pour les autres types de questions générales
+    all_other_patterns = role_questions + general_questions + thanks + goodbye
+    
+    for pattern in all_other_patterns:
         if pattern in query_lower:
             return True
     
-    # Test pour des questions très courtes (moins de 20 caractères sans termes techniques)
-    if len(query_lower) < 20:
-        technical_terms = [
-            "compte", "client", "banque", "agence", "trésorerie", "donnée", "données",
-            "fichier", "sql", "base", "flux", "registre", "limite", "crédit"
-        ]
-        has_technical_terms = any(term in query_lower for term in technical_terms)
-        if not has_technical_terms:
-            return True
+    # Test pour des questions très courtes sans termes techniques
+    if len(query_lower) < 15:
+        return True
     
     return False
 

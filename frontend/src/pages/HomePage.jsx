@@ -123,20 +123,24 @@ function HomePage() {
                      </p>
                      {/* --- END MODIFIED TEXT & SIZE --- */}
                      { !user && ( // Afficher le bouton principal si déconnecté
-                         <button
-                             onClick={() => navigate('/login')} // Point to login for professionals
-                             className="bg-bp-orange-bright hover:bg-bp-orange text-bp-white font-bold py-3 px-8 rounded-lg text-lg transition duration-200 shadow-lg"
-                         >
-                             Se Connecter {/* Changed button text */}
-                         </button>
+                         <div className="space-y-4">
+                             <button
+                                 onClick={() => navigate('/login')} // Point to login for professionals
+                                 className="bg-bp-orange-bright hover:bg-bp-orange text-bp-white font-bold py-3 px-8 rounded-lg text-lg transition duration-200 shadow-lg"
+                             >
+                                 Se Connecter {/* Changed button text */}
+                             </button>
+                         </div>
                       )}
                       { user && ( // Afficher un autre bouton si connecté
-                          <button
-                             onClick={() => navigate('/chat')}
-                             className="bg-bp-orange-bright hover:bg-bp-orange text-bp-white font-bold py-3 px-8 rounded-lg text-lg transition duration-200 shadow-lg"
-                         >
-                             Démarrer le Chat
-                         </button>
+                          <div className="space-y-4">
+                              <button
+                                 onClick={() => navigate('/chat')}
+                                 className="bg-bp-orange-bright hover:bg-bp-orange text-bp-white font-bold py-3 px-8 rounded-lg text-lg transition duration-200 shadow-lg"
+                             >
+                                 Démarrer le Chat
+                             </button>
+                          </div>
                       )}
                  </div>
             </section>

@@ -5,8 +5,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ChatPage from './pages/ChatPage';
-import HomePage from './pages/HomePage'; // Assuming you still have HomePage
-import AdminPage from './pages/AdminPage'; // <-- IMPORT NEW ADMIN PAGE
+import HomePage from './pages/HomePage';
+import AdminPage from './pages/AdminPage';
 import TwoFactorVerificationPage from './pages/TwoFactorVerificationPage';
 import TwoFactorSetupPage from './pages/TwoFactorSetupPage';
 import ProfilePage from './pages/ProfilePage';
@@ -22,7 +22,7 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" replace />;
 }
 
-// --- NEW: Admin Protected Route Component ---
+// --- Admin Protected Route Component ---
 function AdminProtectedRoute({ children }) {
     const { user, loading } = useAuth();
 
@@ -42,7 +42,6 @@ function AdminProtectedRoute({ children }) {
     }
 }
 
-
 // Component to handle redirection for already logged-in users from public pages
 function PublicRoute({ children }) {
     const { user, loading } = useAuth();
@@ -54,7 +53,6 @@ function PublicRoute({ children }) {
     // If user is logged in, redirect from public-only routes (login/signup) to chat
     return !user ? children : <Navigate to="/chat" replace />;
 }
-
 
 function AppRoutes() {
    const { loading } = useAuth(); // Only need loading here
@@ -91,7 +89,7 @@ function AppRoutes() {
           }
         />
 
-        {/* --- NEW: Admin Route (protected) --- */}
+        {/* Admin Route (protected) */}
         <Route
           path="/admin"
           element={
@@ -100,7 +98,6 @@ function AppRoutes() {
             </AdminProtectedRoute>
           }
         />
-        {/* --- End Admin Route --- */}
 
         {/* User Profile Route */}
         <Route
@@ -127,7 +124,6 @@ function AppRoutes() {
       </Routes>
   );
 }
-
 
 function App() {
   return (

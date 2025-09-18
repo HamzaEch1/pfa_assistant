@@ -182,19 +182,29 @@ function ChatPage() {
       },
       {
         target: '.message-input',
-        content: 'Saisissez vos messages ici pour interagir avec l\'assistant IA.',
+        content: 'Saisissez vos messages ici pour interagir avec l\'assistant IA. Vous pouvez également utiliser Ctrl+Entrée pour envoyer rapidement.',
+      },
+      {
+        target: '.voice-record-button',
+        content: '🎤 Cliquez sur ce bouton pour enregistrer un message vocal. L\'IA peut transcrire et traiter vos enregistrements audio en français.',
+        placement: 'top',
+      },
+      {
+        target: '.send-button',
+        content: 'Envoyez vos messages texte avec ce bouton ou utilisez Ctrl+Entrée comme raccourci.',
+        placement: 'top',
       },
       {
         target: '.feedback-buttons',
-        content: 'Donnez votre avis sur les réponses de l\'IA pour aider à améliorer le système.',
+        content: 'Donnez votre avis sur les réponses de l\'IA pour aider à améliorer le système. Utilisez 👍 pour les bonnes réponses et 👎 pour signaler des problèmes.',
       },
       {
         target: '.copy-button',
-        content: 'Copiez n\'importe quelle réponse de l\'IA dans votre presse-papiers en un clic.',
+        content: 'Copiez n\'importe quelle réponse de l\'IA dans votre presse-papiers en un clic pour l\'utiliser ailleurs.',
       },
       {
         target: '.stats-button',
-        content: 'Visualisez les statistiques et analyses des données de vos conversations.',
+        content: 'Visualisez les statistiques et analyses des données de vos conversations avec des graphiques interactifs.',
         placement: 'left',
       }
     ];
@@ -1591,13 +1601,13 @@ function ChatPage() {
           <div className="px-4 py-2 bg-bp-gray-light">
             {!showVoiceRecorder ? (
               <>
-                <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                <form onSubmit={handleSendMessage} className="flex items-center space-x-3 bg-white rounded-2xl p-3 shadow-lg border border-orange-100 hover:shadow-xl transition-all duration-300">
                   <input 
                     type="text" 
                     value={newMessage} 
                     onChange={(e) => setNewMessage(e.target.value)} 
                     placeholder={currentConversationId ? "Écrivez un message..." : "Sélectionnez une conversation pour commencer"} 
-                    className="flex-1 border border-bp-gray rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-bp-orange resize-none message-input"
+                    className="flex-1 border-0 bg-gray-50 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white resize-none message-input text-gray-700 placeholder-gray-400 transition-all duration-200"
                     disabled={!currentConversationId || isLoading || isVoiceProcessing}
                     maxLength="2000"
                   />
@@ -1607,38 +1617,52 @@ function ChatPage() {
                     type="button"
                     onClick={() => setShowVoiceRecorder(true)}
                     disabled={!currentConversationId || isLoading || isVoiceProcessing}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    className="voice-record-button bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center"
                     aria-label="Enregistrer un message vocal"
                     title="Enregistrer un message vocal"
                   >
-                    🎤
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
                   </button>
                   
                   <button 
                     type="submit" 
                     disabled={!newMessage.trim() || !currentConversationId || isLoading || isVoiceProcessing}
-                    className="bg-bp-orange hover:bg-bp-orange-bright text-bp-white font-bold py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+                    className="send-button bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
                     aria-label="Envoyer le message"
                     title={newMessage.trim() ? "Envoyer le message (Ctrl+Entrée)" : "Tapez un message pour l'envoyer"}
                   >
-                    {isLoading ? '...' : 'Envoyer'}
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Envoi...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span>Envoyer</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    )}
                   </button>
                 </form>
                 <div className="text-center mt-1">
                   <span className="text-xs text-bp-gray-dark">
-                    💡 <strong>Ctrl+Entrée</strong> envoyer | 🎤 <strong>Clic</strong> message vocal
+                    💡 <strong>Ctrl+Entrée</strong> pour envoyer | 🎤 <strong>Message vocal</strong> avec transcription automatique
                   </span>
                 </div>
               </>
             ) : (
               <>
-                {/* Voice Recorder Component */}
+                {/* +Recorder Component */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-medium text-gray-700">🎤 Enregistrement vocal</h3>
                     <button
                       onClick={() => setShowVoiceRecorder(false)}
-                      className="text-gray-500 hover:text-gray-700 text-sm"
+                      className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 text-sm"
                     >
                       ✕ Annuler
                     </button>

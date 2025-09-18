@@ -115,12 +115,6 @@ services:
       QDRANT__SERVICE__ENABLE_TELEMETRY: "true"
       QDRANT__SERVICE__ENABLE_DISTRIBUTED: "false"
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
     networks:
       - rag_network
     deploy:
@@ -310,11 +304,28 @@ services:
         condition: service_started
     restart: "no"
 
+  # Whisper Service
+  whisper:
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    container_name: whisper_service
+    ports:
+      - "8004:8004"
+    environment:
+      - MODEL_SIZE=base
+    volumes:
+      - whisper_models:/app/models
+    restart: unless-stopped
+    networks:
+      - rag_network
+
 volumes:
   qdrant_data:
   ragalmost-main_postgres_data:
     external: true
   elasticsearch_data:  # Added for Elasticsearch data persistence
+  whisper_models:  # Added for Whisper models
 
 networks:
   rag_network:

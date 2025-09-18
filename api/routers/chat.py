@@ -1,11 +1,11 @@
-# api/routers/chat.py
+﻿# api/routers/chat.py
 import logging
 import datetime
 import uuid
 import os
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Body, UploadFile, File, Form, Path, Request
-from fastapi.responses import Response
+from fastapi.responses import Response, FileResponse
 from sentence_transformers import SentenceTransformer
 import ollama
 from ..core.config import settings
@@ -22,7 +22,7 @@ from ..dependencies import (
     get_ollama_client_dependency
 )
 from qdrant_client import QdrantClient # Import types for dependency injection hints
-from ..services.rag_service import ClientDisconnectedError # Importer l'exception personnalisée
+from ..services.rag_service import ClientDisconnectedError # Importer l'exception personnalisÃ©e
 
 
 logger = logging.getLogger(__name__)
@@ -215,12 +215,12 @@ async def post_chat_message(
             logger.warning(f"Client disconnected before RAG processing for conversation {conversation_id}.")
             return Response(status_code=204)
 
-        # Récupérer l'historique de conversation existant si disponible
+        # RÃ©cupÃ©rer l'historique de conversation existant si disponible
         conversation_history = []
         current_conversation = crud.conversation.get_conversation_by_id(conv_id=conversation_id, user_id=user_id)
         if current_conversation and hasattr(current_conversation, 'messages') and current_conversation.messages:
-            # Limiter l'historique aux derniers échanges pour éviter les prompts trop longs
-            # Nous prenons les 6 derniers messages (3 échanges) pour conserver le contexte récent
+            # Limiter l'historique aux derniers Ã©changes pour Ã©viter les prompts trop longs
+            # Nous prenons les 6 derniers messages (3 Ã©changes) pour conserver le contexte rÃ©cent
             conversation_history = current_conversation.messages[-6:] if len(current_conversation.messages) > 6 else current_conversation.messages
             logger.info(f"Retrieved {len(conversation_history)} messages as conversation history.")
 
@@ -243,42 +243,42 @@ async def post_chat_message(
             except Exception as e:
                 logger.error(f"Unexpected error retrieving file context for file_id {file_id}: {e}", exc_info=True)
         
-        # Modifier la requête pour demander une réponse en HTML
+        # Modifier la requÃªte pour demander une rÃ©ponse en HTML
         
-        html_prompt = """IMPORTANT: Ta réponse doit être formatée en HTML pur, PAS en Markdown.
+        html_prompt = """IMPORTANT: Ta rÃ©ponse doit Ãªtre formatÃ©e en HTML pur, PAS en Markdown.
 
-Formate ta réponse avec ces balises HTML:
+Formate ta rÃ©ponse avec ces balises HTML:
 - <h1> pour le titre principal
 - <h2> pour les sous-sections
 - <h3> pour les points importants 
 - <p> pour les paragraphes
-- <ul><li>item</li></ul> pour les listes à puces (SANS ESPACES entre les éléments)
-- <ol><li>item</li></ol> pour les listes numérotées (SANS ESPACES entre les éléments)
+- <ul><li>item</li></ul> pour les listes Ã  puces (SANS ESPACES entre les Ã©lÃ©ments)
+- <ol><li>item</li></ol> pour les listes numÃ©rotÃ©es (SANS ESPACES entre les Ã©lÃ©ments)
 - <strong>texte</strong> pour le gras
 - <em>texte</em> pour l'italique
-- <table><tr><th>entête</th></tr><tr><td>cellule</td></tr></table> pour les tableaux
+- <table><tr><th>entÃªte</th></tr><tr><td>cellule</td></tr></table> pour les tableaux
 
-ATTENTION: Évite à tout prix les espaces entre les éléments de liste. Format compact requis.
+ATTENTION: Ã‰vite Ã  tout prix les espaces entre les Ã©lÃ©ments de liste. Format compact requis.
 
 EXEMPLE de formatage CORRECT pour liste:
 <ul>
   <li>Premier point</li>
   <li>Second point</li>
-<li>Troisième point</li>
+<li>TroisiÃ¨me point</li>
 </ul>
 
 Question: """ + prompt
         
-        # CORRECTION: Utiliser d'abord la question originale pour la détection, puis appliquer le HTML si nécessaire
+        # CORRECTION: Utiliser d'abord la question originale pour la dÃ©tection, puis appliquer le HTML si nÃ©cessaire
         assistant_response_content = await services.rag_service.get_rag_response(
-            user_query=prompt,  # IMPORTANT: Utiliser la question originale pour la détection
+            user_query=prompt,  # IMPORTANT: Utiliser la question originale pour la dÃ©tection
             embedding_model=embedding_model,
             qdrant_client=qdrant_client,
             ollama_client=ollama_client,
             file_context=file_context,
             request_object=request,
-            conversation_history=None,  # TEMPORAIRE: Désactiver l'historique pour résoudre le bug
-            html_formatting_request=html_prompt  # Nouveau paramètre pour le formatage HTML
+            conversation_history=None,  # TEMPORAIRE: DÃ©sactiver l'historique pour rÃ©soudre le bug
+            html_formatting_request=html_prompt  # Nouveau paramÃ¨tre pour le formatage HTML
         )
         assistant_message = Message(role="assistant", content=assistant_response_content)
         logger.info(f"Successfully processed RAG response for conversation {conversation_id}.")
@@ -317,7 +317,7 @@ Question: """ + prompt
 
     except ClientDisconnectedError:
         logger.warning(f"Client disconnected during processing for conversation {conversation_id} (user: {user_id}). Request processing stopped.")
-        return Response(status_code=204) # Répondre avec No Content car le client est parti
+        return Response(status_code=204) # RÃ©pondre avec No Content car le client est parti
     except HTTPException as http_exc:
          raise http_exc 
     except Exception as e:
@@ -367,10 +367,10 @@ async def submit_message_feedback(
 @router.delete("/conversations/{conversation_id}/messages/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_message_from_conversation(
     conversation_id: str = Path(..., description="ID de la conversation"),
-    message_id: str = Path(..., description="ID du message à supprimer"),
+    message_id: str = Path(..., description="ID du message Ã  supprimer"),
     current_user: TokenData = Depends(get_current_user)
 ):
-    """Supprime un message spécifique (et sa réponse assistante si applicable) d'une conversation."""
+    """Supprime un message spÃ©cifique (et sa rÃ©ponse assistante si applicable) d'une conversation."""
     logger.info(f"User {current_user.user_id} requesting deletion of message {message_id} from conversation {conversation_id}.")
     
     success = await crud.conversation.delete_message_in_conversation(
@@ -380,7 +380,7 @@ async def delete_message_from_conversation(
     )
     
     if not success:
-        # Le CRUD devrait lever une HTTPException si la conversation/message n'est pas trouvée ou si l'utilisateur n'est pas autorisé.
+        # Le CRUD devrait lever une HTTPException si la conversation/message n'est pas trouvÃ©e ou si l'utilisateur n'est pas autorisÃ©.
         # Si success est false pour une autre raison, c'est une erreur serveur.
         logger.error(f"Failed to delete message {message_id} from conv {conversation_id} for user {current_user.user_id}. See CRUD logs.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete message.")
@@ -415,7 +415,7 @@ async def get_statistics(
             }
         }
 
-        # Récupérer tous les points de Qdrant
+        # RÃ©cupÃ©rer tous les points de Qdrant
         collection_name = "banque_ma_data_catalog"
         search_result = qdrant_client.scroll(
             collection_name=collection_name,
@@ -424,37 +424,37 @@ async def get_statistics(
             with_vectors=False
         )
 
-        # Traiter les données
+        # Traiter les donnÃ©es
         for point in search_result[0]:
             payload = point.payload
             original_data = payload.get('original_data', {})
             source_sheet = payload.get('source_sheet')
 
-            if source_sheet == 'Référentiel Sources':
+            if source_sheet == 'RÃ©fÃ©rentiel Sources':
                 # Filiale
-                filiale = original_data.get('Filiale', 'Non spécifié')
+                filiale = original_data.get('Filiale', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['flux_par_filiale'][filiale] = stats['data_analysis']['flux_par_filiale'].get(filiale, 0) + 1
 
                 # Type de source
-                type_source = original_data.get('Type Source', 'Non spécifié')
+                type_source = original_data.get('Type Source', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['types_source'][type_source] = stats['data_analysis']['types_source'].get(type_source, 0) + 1
 
                 # Plateformes
-                plateforme_source = original_data.get('Plateforme source', 'Non spécifié')
-                plateforme_cible = original_data.get('Plateforme cible', 'Non spécifié')
+                plateforme_source = original_data.get('Plateforme source', 'Non spÃ©cifiÃ©')
+                plateforme_cible = original_data.get('Plateforme cible', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['plateformes']['source'][plateforme_source] = stats['data_analysis']['plateformes']['source'].get(plateforme_source, 0) + 1
                 stats['data_analysis']['plateformes']['cible'][plateforme_cible] = stats['data_analysis']['plateformes']['cible'].get(plateforme_cible, 0) + 1
 
                 # Format
-                format_type = original_data.get('Format', 'Non spécifié')
+                format_type = original_data.get('Format', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['formats'][format_type] = stats['data_analysis']['formats'].get(format_type, 0) + 1
 
-                # Fréquence de mise à jour
-                frequence = original_data.get('Fréquence MAJ', 'Non spécifié')
+                # FrÃ©quence de mise Ã  jour
+                frequence = original_data.get('FrÃ©quence MAJ', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['frequence_maj'][frequence] = stats['data_analysis']['frequence_maj'].get(frequence, 0) + 1
 
                 # Technologie
-                technologie = original_data.get('Technologie', 'Non spécifié')
+                technologie = original_data.get('Technologie', 'Non spÃ©cifiÃ©')
                 stats['data_analysis']['technologies'][technologie] = stats['data_analysis']['technologies'].get(technologie, 0) + 1
 
         # Calculer les totaux
@@ -463,12 +463,12 @@ async def get_statistics(
         stats['data_analysis']['total_types_source'] = len(stats['data_analysis']['types_source'])
         stats['data_analysis']['total_technologies'] = len(stats['data_analysis']['technologies'])
 
-        # Calculer les pourcentages pour chaque catégorie
+        # Calculer les pourcentages pour chaque catÃ©gorie
         def calculate_percentages(data_dict):
             total = sum(data_dict.values())
             return {k: {"count": v, "percentage": round((v / total) * 100, 2)} for k, v in data_dict.items()}
 
-        # Appliquer le calcul des pourcentages à chaque catégorie
+        # Appliquer le calcul des pourcentages Ã  chaque catÃ©gorie
         stats['data_analysis']['flux_par_filiale'] = calculate_percentages(stats['data_analysis']['flux_par_filiale'])
         stats['data_analysis']['types_source'] = calculate_percentages(stats['data_analysis']['types_source'])
         stats['data_analysis']['plateformes']['source'] = calculate_percentages(stats['data_analysis']['plateformes']['source'])
@@ -703,3 +703,4 @@ async def get_supported_languages(
     except Exception as e:
         logger.error(f"Failed to get supported languages: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get languages: {str(e)}")
+

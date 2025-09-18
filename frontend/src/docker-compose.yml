@@ -1,0 +1,351 @@
+# docker-compose.yml
+
+services:
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"   # Keep for HTTP->HTTPS redirection
+      - "443:443" # HTTPS port
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/error_pages:/usr/share/nginx/html/errors
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - rag_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Whisper Service
+  whisper:
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    container_name: whisper_service
+    ports:
+      - "8004:8004"
+    environment:
+      - MODEL_SIZE=base
+    volumes:
+      - ./whisper:/app
+      - whisper_models:/app/models
+    restart: unless-stopped
+    networks:
+      - rag_network
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+
+  # Frontend Service (New)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: react_frontend
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=/api # Use relative path for API through nginx proxy
+    volumes:
+      - ./frontend:/app # For development hot-reloading (optional)
+      - /app/node_modules # Prevents overwriting node_modules with host directory
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - rag_network
+
+  # FastAPI Service (New)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fastapi_api
+    ports:
+      - "8000:8000"
+    environment:
+      PG_HOST: db
+      PG_PORT: 5432
+      PG_USER: ${PG_USER:-user}
+      PG_PASSWORD: ${PG_PASSWORD:-password}
+      PG_DB: ${PG_DB:-mydb}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_GRPC_URL: qdrant:6334
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME:-banque_ma_data_catalog}
+      OLLAMA_HOST: http://host.docker.internal:11434
+      OLLAMA_MODEL_NAME: ${OLLAMA_MODEL_NAME:-llama3:8b}
+      OLLAMA_CLIENT_TIMEOUT: "1800"
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-paraphrase-multilingual-MiniLM-L12-v2}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY?err}
+      NUM_RESULTS_TO_RETRIEVE: ${NUM_RESULTS_TO_RETRIEVE:-28}
+      USER_FILES_DIR: /app/user_files
+      QDRANT_CLIENT_TIMEOUT: "1800"
+      MAX_CONTENT_LENGTH: "104857600"
+      REQUEST_TIMEOUT: "1800"
+      VAULT_ADDR: http://vault:8200
+      VAULT_ENABLED: "true"
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID:-myroot}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./api:/app/api
+      - type: bind
+        source: ~/.cache/huggingface/hub
+        target: /root/.cache/huggingface/hub
+        read_only: true
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      vault:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - rag_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Qdrant Service
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant_db
+    ports:
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__ENABLE_TELEMETRY: "true"
+      QDRANT__SERVICE__ENABLE_DISTRIBUTED: "false"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - rag_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # PostgreSQL Service
+  db:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${PG_USER:-user}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-password}
+      POSTGRES_DB: ${PG_DB:-mydb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ragalmost-main_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER:-user} -d ${PG_DB:-mydb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - rag_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # HashiCorp Vault Service
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_DEV_ROOT_TOKEN_ID:-myroot}
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+      VAULT_ADDR: "http://127.0.0.1:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/config:/vault/config
+      - ./vault/data:/vault/data
+      - ./vault/logs:/vault/logs
+    command: server -dev -dev-root-token-id=${VAULT_DEV_ROOT_TOKEN_ID:-myroot}
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - rag_network
+    restart: unless-stopped
+
+  # Elasticsearch Service
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - rag_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+        reservations:
+          memory: 1g
+    restart: unless-stopped
+
+  # Kibana Service
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.1
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - XPACK_SECURITY_ENCRYPTIONKEY=something_at_least_32_characters_long
+      - XPACK_SECURITY_ENABLED=false
+      - XPACK_REPORTING_ROLES_ENABLED=false
+      - NODE_OPTIONS="--max-old-space-size=2048"
+      - KIBANA_LOGGING_VERBOSE=true
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - rag_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    restart: unless-stopped
+
+  # Metricbeat Service
+  metricbeat:
+    build:
+      context: .
+      dockerfile: Dockerfile.metricbeat
+    container_name: metricbeat
+    user: root
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - KIBANA_HOSTS=http://kibana:5601
+      - XPACK_MONITORING_ENABLED=true
+    command:
+      - -e
+      - --strict.perms=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+    networks:
+      - rag_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+        reservations:
+          memory: 128m
+    restart: unless-stopped
+
+  # Service d'initialisation des dataviews
+  dataview-init:
+    image: curlimages/curl:latest
+    container_name: dataview_init
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - KIBANA_URL=http://kibana:5601
+    volumes:
+      - ./elasticsearch/init-dataviews.sh:/init-dataviews.sh:ro
+    command: ["/bin/sh", "/init-dataviews.sh"]
+    networks:
+      - rag_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+      metricbeat:
+        condition: service_started
+    restart: "no"
+
+volumes:
+  qdrant_data:
+  ragalmost-main_postgres_data:
+    external: true
+  elasticsearch_data:  # Added for Elasticsearch data persistence
+
+networks:
+  rag_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
